@@ -1,0 +1,90 @@
+/* Viewer module (document preview / review / references / OnlyOffice). Colours via theme variables only. */
+
+.vw-page { min-width: 0; }
+.vw-mt { margin-top: 12px; }
+.vw-ml { margin-left: 8px; }
+.vw-block { display: block; }
+.vw-static { cursor: not-allowed; }
+
+/* main column + sidebar */
+.vw-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+.vw-layout.is-collapsed { grid-template-columns: minmax(0, 1fr) 44px; }
+.vw-layout.is-hidden { grid-template-columns: minmax(0, 1fr); }
+.vw-main { min-width: 0; }
+.vw-side { min-width: 0; position: sticky; top: calc(var(--topbar-h) + 12px); }
+.vw-side-expand { min-height: 100px; }
+@media (max-width: 1100px) {
+  .vw-layout, .vw-layout.is-collapsed { grid-template-columns: minmax(0, 1fr); }
+  .vw-side { position: static; }
+}
+
+/* toolbar above the WebViewer */
+.vw-toolbar {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center;
+  padding: 10px; margin-bottom: 12px; background: var(--well); border: 1px solid var(--hairline);
+}
+.vw-toolbar.between { justify-content: space-between; }
+.vw-below { margin-top: 14px; }
+
+/* WebViewer container + overlay */
+.vw-viewer-wrap { position: relative; }
+.vw-viewer { height: 600px; width: 100%; border: 1px solid var(--hairline); background: var(--card); }
+.vw-tall { height: 80vh; min-height: 600px; }
+.vw-overlay {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: 24px;
+  background: var(--paper); border: 1px solid var(--hairline); z-index: 5;
+}
+.vw-overlay .notice { max-width: 520px; }
+
+/* fullscreen (Fullscreen API on the card / container) */
+.vw-fullscreen { background: var(--paper); padding: 16px; overflow: auto; }
+.vw-fullscreen .vw-viewer { height: calc(100vh - 140px); }
+:fullscreen .vw-viewer { height: calc(100vh - 140px); }
+
+/* download dropdown */
+.vw-pop { right: 0; left: auto; min-width: 260px; }
+.vw-pop .pop-item { display: flex; gap: 8px; align-items: flex-start; width: 100%; text-align: left; }
+
+/* sidebar bits */
+.vw-activity { max-height: 200px; overflow-y: auto; padding-right: 4px; }
+.vw-activity-row { gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--hairline); }
+.vw-activity-row:last-child { border-bottom: 0; }
+.vw-ref { gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--hairline); }
+.vw-ref:last-child { border-bottom: 0; padding-bottom: 0; }
+.vw-ref-title { font-weight: 500; }
+.vw-stats { gap: 6px; }
+.vw-collapse-head { width: 100%; text-align: left; cursor: pointer; }
+.vw-collapse-head:hover { background: var(--well); }
+.vw-choice { align-items: flex-start; gap: 10px; }
+
+/* cards in lists */
+.vw-card { border: 1px solid var(--hairline); border-left-width: 2px; padding: 12px; margin-bottom: 10px; gap: 10px; background: var(--card); }
+.vw-card.is-ok { border-left-color: var(--ok); }
+.vw-card.is-warn { border-left-color: var(--warn); }
+.vw-card p { margin: 4px 0; }
+.vw-scroll { max-height: 500px; overflow-y: auto; }
+.vw-remarks { margin-top: 4px; padding: 8px; }
+.vw-remarks p { margin: 0 0 6px; }
+.vw-crumbs { margin-bottom: 12px; }
+.vw-crumbs a:hover { color: var(--ink); }
+
+/* link-references selection list */
+.vw-select-list { max-height: 400px; overflow-y: auto; border: 1px solid var(--hairline); }
+.vw-select-counter { position: sticky; top: 0; z-index: 1; padding: 10px 12px; background: var(--raised); border-bottom: 1px solid var(--hairline); }
+.vw-select-item {
+  display: flex; gap: 12px; align-items: flex-start; padding: 12px; cursor: pointer;
+  border-bottom: 1px solid var(--hairline); border-left: 2px solid transparent;
+}
+.vw-select-item:hover { background: var(--well); }
+.vw-select-item.is-selected { background: var(--accent-soft); border-left-color: var(--accent); }
+.vw-select-item input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--accent); }
+
+/* OnlyOffice standalone editor page */
+.oo-page { min-height: 100vh; display: flex; flex-direction: column; background: var(--paper); }
+.oo-header {
+  display: flex; align-items: center; gap: 12px; padding: 8px 16px; min-height: 48px;
+  background: var(--accent); color: var(--accent-on); font-size: 16px; font-weight: 500;
+}
+.oo-container { flex: 1; height: calc(100vh - 50px); }
+.oo-editor { width: 100%; height: 100%; }
+.oo-message { margin: 20px; display: flex; justify-content: center; align-items: center; min-height: 200px; }

@@ -1,0 +1,144 @@
+/* Auth module: login / signup, dashboard selection, legal pages, profile, notifications, help. */
+
+/* ---------- Bare page frame (auth, selection, legal) ---------- */
+.au-bare { min-height: 100vh; display: flex; flex-direction: column; background: var(--paper); }
+.au-topbar {
+  height: var(--topbar-h); display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 0 24px; border-bottom: 1px solid var(--hairline); background: var(--card);
+}
+.au-topbar h4 { margin: 0; font-size: 15px; font-weight: 500; color: var(--ink-2); }
+.au-topbar .au-user { text-align: right; line-height: 1.25; }
+.au-topbar .au-user strong { display: block; font-size: 13.5px; font-weight: 500; }
+.au-bare-main { flex: 1; width: 100%; }
+.au-bare-footer {
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 16px 24px; border-top: 1px solid var(--hairline); font-size: 12.5px; color: var(--ink-3);
+}
+.au-bare-footer a { color: var(--ink-2); }
+.au-bare-footer a:hover { color: var(--ink); }
+.au-floating-theme { position: fixed; top: 12px; right: 14px; z-index: 20; }
+@media (max-width: 600px) {
+  .au-topbar { padding: 0 16px; }
+  .au-topbar .au-hide-sm { display: none; }
+}
+
+/* ---------- Login / signup ---------- */
+.au-card { width: 100%; max-width: 440px; background: var(--card); border: 1px solid var(--hairline); }
+.au-card.is-wide { max-width: 640px; }
+.au-card-head { padding: 28px 28px 8px; text-align: center; }
+.au-card-head .logo { font-size: 26px; }
+.au-card-head p { margin: 6px 0 0; color: var(--ink-2); }
+.au-card-body { padding: 18px 28px 24px; }
+.au-card-foot { padding: 16px 28px 22px; border-top: 1px solid var(--hairline); text-align: center; font-size: 12.5px; color: var(--ink-2); }
+.au-card-foot > * + * { margin-top: 8px; }
+.au-card-foot a { color: var(--ink-2); }
+.au-card-foot a:hover { color: var(--ink); }
+.au-linkbtn { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; }
+.au-linkbtn:hover { text-decoration: underline; }
+.au-consent { border: 1px solid var(--hairline); background: var(--well); padding: 12px 14px; margin: 16px 0; }
+.au-consent .check { font-size: 13px; line-height: 1.5; }
+.au-consent a { color: var(--accent); text-decoration: underline; }
+.au-consent small { display: block; color: var(--ink-2); margin-top: 3px; font-size: 12px; }
+
+/* ---------- Dashboard selection ---------- */
+.au-select { max-width: 980px; margin: 0 auto; padding: 48px 24px 64px; }
+.au-select-head { text-align: center; margin-bottom: 30px; }
+.au-select-head h1 { font-family: var(--serif); font-size: 32px; margin: 0 0 6px; }
+.au-select-head p { color: var(--ink-2); margin: 0; }
+.au-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.au-option {
+  display: block; text-align: left; background: var(--card); border: 1px solid var(--hairline);
+  padding: 26px 26px 22px; color: var(--ink); transition: border-color 120ms ease, transform 120ms ease;
+}
+.au-option:hover { border-color: var(--accent); }
+.au-option.is-going { transform: scale(0.98); opacity: .8; }
+.au-option-icon {
+  width: 46px; height: 46px; display: grid; place-items: center; margin-bottom: 14px;
+  background: var(--accent-soft); color: var(--accent);
+}
+.au-option h2 { font-family: var(--serif); font-size: 21px; margin: 0 0 8px; }
+.au-option p { color: var(--ink-2); margin: 0 0 14px; line-height: 1.55; }
+.au-option ul { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--hairline); }
+.au-option li { padding: 7px 0; border-bottom: 1px solid var(--hairline); font-size: 13px; display: flex; gap: 8px; align-items: center; }
+.au-option li svg { color: var(--ok); flex: none; }
+
+/* ---------- Legal pages ---------- */
+.au-legal-wrap { max-width: 900px; margin: 0 auto; padding: 32px 24px 56px; }
+.au-legal h2 { font-size: 17px; }
+.au-legal .au-legal-note { margin-top: 22px; }
+.au-legal-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 34px; }
+
+/* ---------- Profile ---------- */
+.au-profile-hero { display: flex; align-items: center; gap: 18px; padding: 22px; border-bottom: 1px solid var(--hairline); }
+.au-avatar-lg {
+  width: 64px; height: 64px; display: grid; place-items: center; flex: none;
+  background: var(--accent-soft); color: var(--accent); font-family: var(--serif); font-size: 24px; font-weight: 600;
+}
+.au-profile-hero h1 { margin: 0; font-family: var(--serif); font-size: 24px; }
+.au-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.au-summary .span-2 { grid-column: 1 / -1; }
+.au-summary dt { font-size: 12px; color: var(--ink-2); }
+.au-summary dd { margin: 2px 0 0; font-weight: 500; }
+.au-project-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--hairline); color: var(--ink); }
+.au-project-item:last-child { border-bottom: 0; }
+.au-project-item:hover h3 { color: var(--accent); }
+.au-project-item h3 { margin: 0; font-size: 14px; font-weight: 500; }
+.au-project-icon { width: 32px; height: 32px; display: grid; place-items: center; background: var(--well); border: 1px solid var(--hairline); color: var(--ink-2); flex: none; }
+
+/* ---------- Timezone selector ---------- */
+.au-tz { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 760px) { .au-tz { grid-template-columns: 1fr; } }
+.au-tz-time { font-family: var(--mono); font-size: 12px; }
+
+/* ---------- Notifications ---------- */
+.au-notif { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-bottom: 1px solid var(--hairline); }
+.au-notif:last-child { border-bottom: 0; }
+.au-notif.is-unread { border-left: 2px solid var(--accent); background: var(--accent-soft); }
+.au-notif-icon { width: 34px; height: 34px; display: grid; place-items: center; flex: none; border: 1px solid var(--hairline); background: var(--well); color: var(--ink-2); }
+.au-notif-icon.t-document_upload { color: var(--c2); background: var(--c2-soft); }
+.au-notif-icon.t-review_request { color: var(--c3); background: var(--c3-soft); }
+.au-notif-icon.t-document_approved { color: var(--ok); background: var(--ok-soft); }
+.au-notif-icon.t-document_rejected { color: var(--danger); background: var(--danger-soft); }
+.au-notif-icon.t-version_updated { color: var(--c4); background: var(--c4-soft); }
+.au-notif h3 { margin: 0 0 3px; font-size: 14px; font-weight: 600; }
+.au-notif p { margin: 0 0 4px; color: var(--ink-2); }
+
+/* ---------- Help & support ---------- */
+.au-help-card {
+  display: block; width: 100%; text-align: center; padding: 22px 16px; background: var(--card);
+  border: 1px solid var(--hairline); cursor: pointer; color: var(--ink);
+}
+.au-help-card:hover { border-color: var(--accent); }
+.au-help-card .au-option-icon { margin: 0 auto 12px; }
+.au-help-card h3 { margin: 0 0 4px; font-size: 14.5px; font-weight: 600; }
+.au-help-card p { margin: 0; }
+.au-faq details { border-bottom: 1px solid var(--hairline); }
+.au-faq details:last-child { border-bottom: 0; }
+.au-faq summary { cursor: pointer; padding: 12px 0; font-weight: 500; list-style-position: inside; }
+.au-faq details p { margin: 0 0 14px; color: var(--ink-2); line-height: 1.6; }
+.au-support-item { display: flex; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--hairline); }
+.au-support-item:last-child { border-bottom: 0; }
+.au-support-item h3 { margin: 0 0 3px; font-size: 14px; font-weight: 600; }
+.au-support-item p { margin: 0 0 4px; color: var(--ink-2); }
+.au-help-body ol, .au-help-body ul { padding-left: 20px; line-height: 1.7; }
+
+/* Section labels + application cards on dashboard selection */
+.au-select { max-width: 1120px; }
+.au-select-label { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 26px 0 10px; }
+.au-select-head + .au-select-label { margin-top: 0; }
+.au-option-app { display: flex; flex-direction: column; }
+.au-option-app .au-option-icon { background: var(--well); color: var(--ink-2); }
+.au-option-app:hover .au-option-icon { background: var(--accent-soft); color: var(--accent); }
+.au-option-note { margin-top: auto; padding-top: 14px; font-size: 12px; color: var(--ink-3); }
+
+/* sign-up: account kind tabs, section labels, pending confirmation */
+.au-signup-tabs { margin-bottom: 10px; overflow-x: auto; }
+.au-signup-tabs .filter-tabs { width: 100%; }
+.au-signup-tabs .filter-tab { flex: 1; justify-content: center; }
+.au-signup-intro { font-size: 13px; color: var(--ink-2); margin: 0 0 16px; line-height: 1.5; }
+.au-section-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); padding-top: 4px; border-bottom: 1px solid var(--hairline); padding-bottom: 6px; }
+.au-code-input { font-family: var(--mono); letter-spacing: 0.12em; text-transform: uppercase; }
+.au-done { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 28px; padding-bottom: 28px; }
+.au-done-icon { color: var(--ok); }
+.au-done h2 { margin: 0; font-family: var(--serif); font-size: 22px; }
+.au-done p { margin: 0 0 8px; color: var(--ink-2); max-width: 420px; line-height: 1.5; }

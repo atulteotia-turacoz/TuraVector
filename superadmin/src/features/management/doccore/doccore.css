@@ -1,0 +1,20 @@
+/* doccore — document lifecycle pages. Colours only via theme variables. */
+.dc-accent { color: var(--accent); }
+.dc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.dc-btn-group { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.dc-section-title { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-3); margin: 0 0 10px; }
+.dc-assignment { border: 1px solid var(--hairline); background: var(--card); padding: 14px 16px; }
+.dc-assignment + .dc-assignment { margin-top: 10px; }
+.dc-assignment.is-overdue { border-left: 3px solid var(--danger); }
+.dc-assignment.is-completed { border-left: 3px solid var(--ok); }
+.dc-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-2); margin: 10px 0 12px; }
+.dc-meta span { display: inline-flex; gap: 6px; align-items: center; }
+.dc-avatar { width: 26px; height: 26px; display: inline-grid; place-items: center; font-size: 11px; border: 1px solid var(--hairline-dark); color: var(--ink-2); flex: none; }
+.dc-person { display: inline-flex; gap: 8px; align-items: center; }
+.dc-row-attention td { background: var(--warn-soft, var(--well)); }
+.dc-warning-list { margin: 8px 0 0; padding-left: 18px; }
+.dc-warning-list li { margin: 3px 0; }
+.dc-file-picked { color: var(--ok); font-size: 13px; margin-top: 8px; }
+.dc-version-num { font-weight: 600; }
+.dc-sub { display: block; font-size: 12px; color: var(--ink-3); }
+.dc-quick { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }

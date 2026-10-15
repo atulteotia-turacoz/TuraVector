@@ -1,0 +1,169 @@
+/* ==========================================================================
+   TuraVector — design tokens
+
+
+   Two independent axes:
+     [data-theme]  light | dark        — surface and ink
+     [data-accent] mark | indigo | …   — the single accent colour
+
+   Everything below is expressed as custom properties so both axes can change at
+   runtime without a rebuild.
+   ========================================================================== */
+
+/* ---------- Light surfaces (default) ---------- */
+:root {
+  --paper: #FCFCFA;
+  --well: #F5F4F0;
+  --card: #FFFFFF;
+  --raised: #FFFFFF;
+
+  --ink: #1C1B1A;
+  --ink-2: #6E6A64;
+  --ink-3: #A5A099;
+
+  --hairline: #E5E2DC;
+  --hairline-dark: #C9C4BC;
+  --hairline-strong: #B3ADA3;
+
+  --overlay: rgba(28, 27, 26, 0.34);
+  --selection: rgba(158, 43, 37, 0.14);
+
+  --ok: #3D6B4F;
+  --ok-soft: #EDF3EF;
+  --warn: #8A5A16;
+  --warn-soft: #FAF3E8;
+  --danger: #9E2B25;
+  --danger-soft: #F6ECEA;
+
+  /* Recipient field colours — distinguishable in both themes */
+  --c1: #9E2B25; --c1-soft: #F7EDEC;
+  --c2: #3B4B8C; --c2-soft: #ECEEF6;
+  --c3: #1F6F6B; --c3-soft: #E9F2F1;
+  --c4: #8A5A16; --c4-soft: #F8F1E7;
+  --c5: #6B3A6B; --c5-soft: #F2ECF2;
+  --c6: #3D6B4F; --c6-soft: #ECF2EE;
+  --c7: #2F5D7C; --c7-soft: #EAF0F4;
+  --c8: #7A3B52; --c8-soft: #F5ECEF;
+
+  --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --measure: 640px;
+  --topbar-h: 52px;
+  --radius: 0px;
+
+  color-scheme: light;
+}
+
+/* ---------- Dark surfaces ---------- */
+:root[data-theme='dark'] {
+  --paper: #141413;
+  --well: #1B1A19;
+  --card: #1F1E1C;
+  --raised: #262523;
+
+  --ink: #EDEAE4;
+  --ink-2: #A29C93;
+  --ink-3: #726C64;
+
+  --hairline: #2C2B28;
+  --hairline-dark: #3D3B37;
+  --hairline-strong: #52504A;
+
+  --overlay: rgba(0, 0, 0, 0.62);
+  --selection: rgba(217, 106, 99, 0.22);
+
+  --ok: #7FB894;
+  --ok-soft: #1B2620;
+  --warn: #D6A05A;
+  --warn-soft: #2A2318;
+  --danger: #D96A63;
+  --danger-soft: #2C1D1C;
+
+  --c1: #D96A63; --c1-soft: #2C1D1C;
+  --c2: #8B9BD9; --c2-soft: #1D2130;
+  --c3: #6FBDB7; --c3-soft: #172726;
+  --c4: #D6A05A; --c4-soft: #2A2318;
+  --c5: #B98BB9; --c5-soft: #261E26;
+  --c6: #7FB894; --c6-soft: #1B2620;
+  --c7: #7FA9C6; --c7-soft: #19232A;
+  --c8: #C68399; --c8-soft: #2A1D22;
+
+  color-scheme: dark;
+}
+
+/* Follow the operating system when the user has expressed no preference. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #141413;
+    --well: #1B1A19;
+    --card: #1F1E1C;
+    --raised: #262523;
+    --ink: #EDEAE4;
+    --ink-2: #A29C93;
+    --ink-3: #726C64;
+    --hairline: #2C2B28;
+    --hairline-dark: #3D3B37;
+    --hairline-strong: #52504A;
+    --overlay: rgba(0, 0, 0, 0.62);
+    --selection: rgba(217, 106, 99, 0.22);
+    --ok: #7FB894; --ok-soft: #1B2620;
+    --warn: #D6A05A; --warn-soft: #2A2318;
+    --danger: #D96A63; --danger-soft: #2C1D1C;
+    --c1: #D96A63; --c1-soft: #2C1D1C;
+    --c2: #8B9BD9; --c2-soft: #1D2130;
+    --c3: #6FBDB7; --c3-soft: #172726;
+    --c4: #D6A05A; --c4-soft: #2A2318;
+    --c5: #B98BB9; --c5-soft: #261E26;
+    --c6: #7FB894; --c6-soft: #1B2620;
+    --c7: #7FA9C6; --c7-soft: #19232A;
+    --c8: #C68399; --c8-soft: #2A1D22;
+    color-scheme: dark;
+  }
+}
+
+/* ==========================================================================
+   Accents — eight named palettes plus a tenant-supplied custom colour.
+   `--accent-on` is the text colour that sits on a filled accent surface.
+   ========================================================================== */
+:root,
+:root[data-accent='mark']   { --accent: #9E2B25; --accent-hover: #85231E; --accent-soft: #F6ECEA; --accent-on: #FCFCFA; }
+:root[data-accent='indigo'] { --accent: #3B4B8C; --accent-hover: #313F76; --accent-soft: #ECEEF6; --accent-on: #FCFCFA; }
+:root[data-accent='teal']   { --accent: #1F6F6B; --accent-hover: #185B57; --accent-soft: #E9F2F1; --accent-on: #FCFCFA; }
+:root[data-accent='moss']   { --accent: #3D6B4F; --accent-hover: #325841; --accent-soft: #ECF2EE; --accent-on: #FCFCFA; }
+:root[data-accent='amber']  { --accent: #8A5A16; --accent-hover: #734A12; --accent-soft: #F8F1E7; --accent-on: #FCFCFA; }
+:root[data-accent='plum']   { --accent: #6B3A6B; --accent-hover: #583059; --accent-soft: #F2ECF2; --accent-on: #FCFCFA; }
+:root[data-accent='slate']  { --accent: #3F4A55; --accent-hover: #333C46; --accent-soft: #EDEFF1; --accent-on: #FCFCFA; }
+:root[data-accent='ink']    { --accent: #1C1B1A; --accent-hover: #33312E; --accent-soft: #EFEDE9; --accent-on: #FCFCFA; }
+
+/* Dark mode lifts each accent so it stays legible on a dark ground. */
+:root[data-theme='dark'][data-accent='mark'],
+:root[data-theme='dark']:not([data-accent])   { --accent: #D96A63; --accent-hover: #E58079; --accent-soft: #2C1D1C; --accent-on: #141413; }
+:root[data-theme='dark'][data-accent='indigo'] { --accent: #8B9BD9; --accent-hover: #9DABE2; --accent-soft: #1D2130; --accent-on: #141413; }
+:root[data-theme='dark'][data-accent='teal']   { --accent: #6FBDB7; --accent-hover: #85CAC5; --accent-soft: #172726; --accent-on: #141413; }
+:root[data-theme='dark'][data-accent='moss']   { --accent: #7FB894; --accent-hover: #93C5A6; --accent-soft: #1B2620; --accent-on: #141413; }
+:root[data-theme='dark'][data-accent='amber']  { --accent: #D6A05A; --accent-hover: #E0B173; --accent-soft: #2A2318; --accent-on: #141413; }
+:root[data-theme='dark'][data-accent='plum']   { --accent: #B98BB9; --accent-hover: #C79EC7; --accent-soft: #261E26; --accent-on: #141413; }
+:root[data-theme='dark'][data-accent='slate']  { --accent: #97A4B1; --accent-hover: #A9B4BF; --accent-soft: #1E2328; --accent-on: #141413; }
+:root[data-theme='dark'][data-accent='ink']    { --accent: #EDEAE4; --accent-hover: #FFFFFF; --accent-soft: #262523; --accent-on: #141413; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light'])[data-accent='mark'],
+  :root:not([data-theme='light']):not([data-accent])   { --accent: #D96A63; --accent-hover: #E58079; --accent-soft: #2C1D1C; --accent-on: #141413; }
+  :root:not([data-theme='light'])[data-accent='indigo'] { --accent: #8B9BD9; --accent-hover: #9DABE2; --accent-soft: #1D2130; --accent-on: #141413; }
+  :root:not([data-theme='light'])[data-accent='teal']   { --accent: #6FBDB7; --accent-hover: #85CAC5; --accent-soft: #172726; --accent-on: #141413; }
+  :root:not([data-theme='light'])[data-accent='moss']   { --accent: #7FB894; --accent-hover: #93C5A6; --accent-soft: #1B2620; --accent-on: #141413; }
+  :root:not([data-theme='light'])[data-accent='amber']  { --accent: #D6A05A; --accent-hover: #E0B173; --accent-soft: #2A2318; --accent-on: #141413; }
+  :root:not([data-theme='light'])[data-accent='plum']   { --accent: #B98BB9; --accent-hover: #C79EC7; --accent-soft: #261E26; --accent-on: #141413; }
+  :root:not([data-theme='light'])[data-accent='slate']  { --accent: #97A4B1; --accent-hover: #A9B4BF; --accent-soft: #1E2328; --accent-on: #141413; }
+  :root:not([data-theme='light'])[data-accent='ink']    { --accent: #EDEAE4; --accent-hover: #FFFFFF; --accent-soft: #262523; --accent-on: #141413; }
+}
+
+/* A tenant may supply an exact brand colour; it overrides the named palette. */
+:root[data-accent='custom'] {
+  --accent: var(--accent-custom, #9E2B25);
+  --accent-hover: var(--accent-custom, #9E2B25);
+  --accent-soft: color-mix(in srgb, var(--accent-custom, #9E2B25) 10%, var(--card));
+  --accent-on: #FCFCFA;
+}

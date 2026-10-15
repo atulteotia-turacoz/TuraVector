@@ -1,0 +1,35 @@
+.org-stats { margin-bottom: 16px; }
+.org-join { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--hairline); background: var(--well); padding: 10px 14px; margin-bottom: 18px; }
+.org-join-main { display: flex; align-items: center; gap: 10px; color: var(--ink-2); flex-wrap: wrap; }
+.org-code { font-family: var(--mono); font-size: 15px; letter-spacing: 0.14em; color: var(--ink); background: var(--paper); border: 1px solid var(--hairline); padding: 2px 8px; }
+.org-tabs { margin-bottom: 14px; overflow-x: auto; }
+.org-count { display: inline-block; margin-left: 6px; min-width: 18px; padding: 0 5px; background: var(--accent); color: var(--accent-on); font-size: 11px; line-height: 18px; text-align: center; }
+.org-name { font-weight: 500; }
+.org-actions { flex-wrap: wrap; justify-content: flex-end; }
+.org-logo-row { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.org-logo-preview { width: 72px; height: 72px; border: 1px solid var(--hairline); display: grid; place-items: center; background: var(--paper); flex: none; }
+.org-logo-preview img { max-width: 64px; max-height: 64px; object-fit: contain; }
+.org-detail-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 1000px) { .org-detail-grid { grid-template-columns: 1fr; } }
+.org-kv { grid-template-columns: 110px minmax(0, 1fr); }
+.org-kv dd { overflow-wrap: anywhere; margin: 0; }
+.cap { text-transform: capitalize; }
+.org-actions-cell { cursor: default; }
+.org-pocs { grid-template-columns: 1fr; align-items: start; }
+.org-poc-add { display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--hairline); flex-wrap: wrap; }
+.org-doc { max-width: 420px; overflow-wrap: anywhere; }
+/* dashboard points of contact (PointsOfContact.tsx) */
+.poc-row { display: flex; flex-direction: column; gap: 24px; }
+.poc-empty { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.poc-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.poc-cards li { border: 1px solid var(--hairline); padding: 10px 12px; background: var(--paper); }
+.poc-contact { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+.poc-contact a { display: inline-flex; align-items: center; gap: 6px; overflow-wrap: anywhere; color: var(--ink-2); }
+.poc-turacoz { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--hairline); }
+.poc-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
+.poc-team { list-style: none; margin: 0; padding: 0; border: 1px solid var(--hairline); background: var(--paper); }
+.poc-team li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; }
+.poc-team li + li { border-top: 1px solid var(--hairline); }
+.poc-team .org-name { display: block; }
+.poc-team-mail { display: block; overflow-wrap: anywhere; }
+.tbl th.num, .tbl td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }

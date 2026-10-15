@@ -1,0 +1,64 @@
+/* Tools module — categories, mail, SMTP, journals, analytics. Theme variables only. */
+
+.tools-row-inactive td { color: var(--ink-3); }
+.tools-dot { width: 6px; height: 6px; display: inline-block; flex: none; background: var(--ink-3); }
+.tools-dot.is-on { background: var(--ok); }
+.tools-pages { display: flex; gap: 4px; flex-wrap: wrap; }
+.tools-pages .btn.is-current { border-color: var(--accent); color: var(--accent); }
+.tools-narrow { max-width: 720px; }
+
+.tools-filters { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) auto; gap: 12px; align-items: end; }
+@media (max-width: 1000px) { .tools-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.tools-pre { white-space: pre-wrap; word-break: break-word; font-family: var(--mono); font-size: 12.5px; margin: 0; }
+.tools-email-body { white-space: pre-wrap; word-break: break-word; background: var(--well); border: 1px solid var(--hairline); padding: 14px 16px; font-size: 13.5px; line-height: 1.6; }
+
+.tools-smtp-card { border: 1px solid var(--hairline); border-left: 2px solid var(--hairline-dark); padding: 14px 16px; }
+.tools-smtp-card.is-active { border-left-color: var(--ok); }
+.tools-smtp-card + .tools-smtp-card { margin-top: 12px; }
+.tools-presets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tools-preset { border: 1px solid var(--hairline); padding: 10px 12px; text-align: left; background: var(--card); }
+.tools-preset:hover { border-color: var(--ink); }
+.tools-preset.is-selected { border-color: var(--accent); background: var(--accent-soft); }
+.tools-pw { position: relative; }
+.tools-pw .input { padding-right: 38px; }
+.tools-pw button { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+
+.tools-error-list { max-height: 360px; overflow-y: auto; border: 1px solid var(--hairline); }
+.tools-error-list > div { padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-size: 13px; color: var(--danger); }
+.tools-error-list > div:last-child { border-bottom: 0; }
+
+/* Charts */
+.tools-chart { position: relative; height: 300px; }
+.tools-legend { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-bottom: 12px; font-size: 12.5px; color: var(--ink-2); }
+.tools-legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Dashboard cards */
+.tools-card-stats { display: flex; gap: 28px; margin: 14px 0; }
+.tools-card-stats .stat-value { font-size: 24px; }
+.tools-actions-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tools-actions-grid a { border: 1px solid var(--hairline); padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13.5px; }
+.tools-actions-grid a:hover { border-color: var(--ink); }
+@media (max-width: 760px) { .tools-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Export */
+.tools-radio { display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--hairline); padding: 12px 14px; cursor: pointer; }
+.tools-radio.is-checked { border-color: var(--accent); background: var(--accent-soft); }
+.tools-radio input { margin-top: 3px; accent-color: var(--accent); }
+.tools-radio + .tools-radio { margin-top: 8px; }
+
+/* Journals */
+.tools-journal { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--hairline); }
+.tools-journal:last-child { border-bottom: 0; }
+.tools-journal-cover { width: 64px; height: 84px; flex: none; display: grid; place-items: center; background: var(--well); border: 1px solid var(--hairline); color: var(--ink-3); overflow: hidden; }
+.tools-journal-cover img { width: 100%; height: 100%; object-fit: cover; }
+.tools-journal h3 { font-family: var(--serif); font-size: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tools-journal h3 a:hover { color: var(--accent); }
+.tools-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 10px 0; }
+.tools-metrics .tiny { text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
+@media (max-width: 760px) { .tools-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tools-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+
+/* Under development */
+.tools-coming { text-align: center; padding: 72px 24px; }
+.tools-coming h2 { font-family: var(--serif); font-size: 22px; margin: 14px 0 8px; }

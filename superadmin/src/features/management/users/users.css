@@ -1,0 +1,31 @@
+/* users module — layout helpers only; colours come from theme variables */
+.users-filter { display: grid; grid-template-columns: 2fr repeat(3, 1fr) auto; gap: 14px; align-items: end; }
+.users-filter .field + .field { margin-top: 0; }
+.users-filter-actions { padding-bottom: 1px; }
+@media (max-width: 860px) { .users-filter { grid-template-columns: 1fr; } }
+
+.users-list { margin: 0; padding-left: 18px; line-height: 1.8; }
+.users-reqs { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; color: var(--danger); }
+.users-reqs li { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.users-reqs li.is-met { color: var(--ok); }
+
+.users-password { border: 1px solid var(--hairline); background: var(--well); padding: 12px 14px; align-items: center; }
+.users-password code { font-size: 17px; letter-spacing: 0.04em; word-break: break-all; }
+
+.users-accordion { border: 1px solid var(--hairline); }
+.users-acc-item + .users-acc-item { border-top: 1px solid var(--hairline); }
+.users-acc-head { display: flex; align-items: center; gap: 8px; width: 100%; padding: 11px 14px; text-align: left; font-size: 13.5px; color: var(--ink); background: var(--card); }
+.users-acc-head:hover { background: var(--well); }
+.users-acc-body { padding: 12px 14px 16px; background: var(--well); border-top: 1px solid var(--hairline); }
+.users-perm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 16px; margin-top: 12px; }
+
+.users-kv-tight { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; font-size: 13px; }
+.users-kv-tight dd { text-align: right; font-variant-numeric: tabular-nums; }
+
+.users-unsaved { position: sticky; bottom: 12px; }
+.users-tools .btn { justify-content: flex-start; }
+.users-workspace { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.users-workspace .field { min-width: 240px; }
+.users-workspace > span { padding-bottom: 10px; }
+.users-cell { min-width: 160px; max-width: 230px; }
+.users-cell .tiny { overflow-wrap: anywhere; margin-top: 2px; }
