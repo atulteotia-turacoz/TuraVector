@@ -27,8 +27,10 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401 && !String(error.config?.url || '').includes('/api/auth/login')) {
       setToken(null);
-      if (!location.pathname.startsWith('/login')) {
-        location.href = `/login/?next=${encodeURIComponent(location.pathname + location.search)}`;
+      if (!location.pathname.replace(import.meta.env.BASE_URL.replace(/\/$/, ''), '').startsWith('/login')) {
+        const base = import.meta.env.BASE_URL.replace(/\/$/, '');  // '' or '/admin'
+        const here = location.pathname.slice(base.length) || '/';
+        location.href = `${base}/login/?next=${encodeURIComponent(here + location.search)}`;
       }
     }
     return Promise.reject(error);
