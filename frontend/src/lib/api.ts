@@ -1,7 +1,8 @@
 import axios, { AxiosError } from 'axios';
 
 /** Base URL of the FastAPI backend. Empty = same origin (Vite proxies /api and /media in dev). */
-export const API_URL: string = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || '';
+// the backend's address without /api (every call already starts with /api/…); a trailing /api is dropped
+export const API_URL: string = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '').replace(/\/api$/, '') || '';
 
 const TOKEN_KEY = 'tura.token';
 

@@ -133,3 +133,8 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+
+if not settings.SECRET_KEY.strip():
+    # every login token is signed with it: an empty value only shows up later as a 500 on login
+    raise RuntimeError("SECRET_KEY is empty in backend/.env. Set it to a long random value, e.g. the output of "
+                       "`python3 -c \"import secrets; print(secrets.token_urlsafe(64))\"`, and restart the service.")
