@@ -209,15 +209,24 @@ def rewrite_env(updates: dict[str, Any], path: Path | None = None) -> None:
             out[-1] += "\n"
         for key, value in remaining.items():
             out.append(f"{key}={serialize(value)}\n")
+    text = "".join(out)
     if path.exists():
-        shutil.copy2(path, path.with_name(path.name + ".bak"))
+        try:
+            shutil.copy2(path, path.with_name(path.name + ".bak"))
+        except OSError:
+            pass  # the folder may be read-only for the API user; the backup is a convenience
         mode = path.stat().st_mode & 0o777
     else:
         mode = 0o600
-    fd, tmp = tempfile.mkstemp(prefix=".env.", dir=str(path.parent))
+    try:
+        fd, tmp = tempfile.mkstemp(prefix=".env.", dir=str(path.parent))
+    except OSError:
+        # Folder not writable (common on servers): rewrite the file in place if the file itself is writable.
+        path.write_text(text, encoding="utf-8")
+        return
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            fh.write("".join(out))
+            fh.write(text)
         os.chmod(tmp, mode)
         os.replace(tmp, path)
     except BaseException:
@@ -273,7 +282,13 @@ def update_settings(payload: dict[str, Any], log) -> dict:
     clean = validate_updates(payload)
     changed = {k: v for k, v in clean.items() if getattr(settings, k) != v}
     if changed:
-        rewrite_env(changed)
+        try:
+            rewrite_env(changed)
+        except OSError as exc:
+            import getpass
+            raise HTTPException(500, f"Could not save to {ENV_PATH}: {exc.strerror or exc}. "
+                                     f"The API runs as user '{getpass.getuser()}'; give that user write access "
+                                     f"to this file (e.g. sudo chown {getpass.getuser()} {ENV_PATH}).") from exc
         for k, v in changed.items():
             setattr(settings, k, v)
         log(sorted(changed))
