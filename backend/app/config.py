@@ -6,6 +6,7 @@ Every value mirrors a setting from the original Django project
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # .../TuraDomeNew/backend
@@ -30,10 +31,17 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
 
     # URLs
-    BACKEND_PUBLIC_URL: str = "http://localhost:8001"
+    BACKEND_PUBLIC_URL: str = "http://localhost:8001"  # the site root, WITHOUT /api (code adds /api/... and /media/...)
     FRONTEND_URL: str = "http://localhost:5173"
     SUPERADMIN_URL: str = "http://localhost:5174"
     CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
+
+    @field_validator("BACKEND_PUBLIC_URL")
+    @classmethod
+    def _no_api_suffix(cls, v: str) -> str:
+        # media URLs are <this>/media/… and callbacks <this>/api/…, so a trailing /api would be doubled
+        v = v.strip().rstrip("/")
+        return v[:-4] if v.endswith("/api") else v
 
     # Media — defaults to the original Django MEDIA_ROOT so existing files keep working
     MEDIA_ROOT: str = str(BASE_DIR.parent.parent / "media")
