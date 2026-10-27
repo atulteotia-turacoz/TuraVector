@@ -14,7 +14,7 @@ export type Capability =
   | 'can_delete_document_versions' | 'can_delete_all_document_versions' | 'can_view_document_history'
   | 'can_view_all_document_history' | 'can_create_document_versions' | 'can_upload_documents'
   | 'can_manage_library' | 'can_manage_reference_zip' | 'can_review_documents' | 'can_reject_documents'
-  | 'can_assign_reviewers' | 'can_access_other_documents' | 'can_manage_projects' | 'can_create_projects'
+  | 'can_assign_reviewers' | 'can_access_other_documents'
   | 'can_search_journals' | 'can_access_reviews' | 'can_view_completed' | 'can_access_archive'
   | 'can_access_references' | 'can_access_document_references' | 'can_access_content_lab_dashboard'
   | 'can_access_other_documents_dashboard' | 'tag_can_manage_users' | 'tag_can_manage_email_settings'

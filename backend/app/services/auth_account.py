@@ -4,6 +4,7 @@
 """
 import datetime
 import random
+import re
 import string
 import unicodedata
 
@@ -51,7 +52,22 @@ def signup_context(db: Session) -> dict:
         "user_types": [{"id": t.id, "code": t.code, "name": t.name} for t in user_types if t.code in allowed],
         "default_user_types": [{"value": k, "label": v} for k, v in SIGNUP_USER_TYPES],
         "organisation_kinds": [{"value": k, "label": v} for k, v in ORG_KINDS_FOR_SIGNUP],
+        **_signup_plans(db),
     }
+
+
+def _signup_plans(db: Session) -> dict:
+    """Tools and the plans offered at sign-up (managed in the admin): `plans` for individuals,
+    `organisation_plans` for universities / organisations."""
+    from app.services import subscriptions
+    try:
+        tools = subscriptions.active_tools(db)
+        plans = subscriptions.plans_for(db, None)
+    except Exception:  # noqa: BLE001 — sign-up must keep working if the plans tables aren't set up
+        return {"tools": [], "plans": [], "organisation_plans": []}
+    return {"tools": [subscriptions.tool_payload(t) for t in tools],
+            "plans": [subscriptions.plan_payload(p) for p in plans if p.audience in ("individual", "all")],
+            "organisation_plans": [subscriptions.plan_payload(p) for p in plans if p.audience in ("organisation", "all")]}
 
 
 def normalize_email(email: str | None) -> str:
@@ -203,3 +219,47 @@ def active_timezone_info() -> dict:
     else:
         offset_str = "+00:00"
     return {"current_timezone": str(tz), "timezone_offset": offset_str}
+
+
+# ------------------------------------------------------------------ usernames
+USERNAME_RE = re.compile(r"^[A-Za-z0-9._@+-]+$")  # the characters Django allows in usernames
+
+
+def username_problem(username: str) -> str | None:
+    """Why a new username can't be used (format only), or None."""
+    if len(username) < 3:
+        return "Use at least 3 characters."
+    if len(username) > 150:
+        return "Use 150 characters or fewer."
+    if not USERNAME_RE.match(username):
+        return "Use only letters, numbers and . _ - @ +"
+    return None
+
+
+def username_taken(db: Session, username: str) -> bool:
+    return db.execute(select(User.id).where(User.username == username).limit(1)).first() is not None
+
+
+def username_suggestions(db: Session, username: str = "", first_name: str = "", last_name: str = "", limit: int = 4) -> list[str]:
+    """Free usernames built from the wanted username or the person's name."""
+    def clean(v: str) -> str:
+        return re.sub(r"[^a-z0-9._]+", "", (v or "").strip().lower().replace(" ", "."))[:30].strip("._")
+    first, last, base = clean(first_name), clean(last_name), clean(username)
+    stems = [s for s in dict.fromkeys([
+        base, f"{first}.{last}" if first and last else "", f"{first}{last}", f"{first}_{last}" if first and last else "",
+        f"{first}{last[:1]}" if last else "", f"{first[:1]}{last}" if first else "", first,
+    ]) if len(s) >= 3]
+    if not stems:
+        return []
+    year = datetime.date.today().year
+    rng = random.Random()
+    candidates = list(stems)
+    if base and len(base) >= 3:  # keep a variant of what was typed near the top
+        candidates.insert(1, f"{base}{year % 100}")
+        candidates.insert(2, f"{base}{rng.randint(100, 999)}")
+    for s in stems[:3]:
+        candidates += [f"{s}{year % 100}", f"{s}{rng.randint(10, 99)}", f"{s}{rng.randint(100, 999)}"]
+    candidates = [c for c in dict.fromkeys(candidates) if not username_problem(c)]
+    taken = set(db.execute(select(User.username).where(User.username.in_(candidates))).scalars())
+    taken_lower = {t.lower() for t in taken}
+    return [c for c in candidates if c.lower() not in taken_lower][:limit]

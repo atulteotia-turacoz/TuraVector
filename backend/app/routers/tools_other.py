@@ -11,7 +11,7 @@ import json
 
 from fastapi import APIRouter, Body, Depends, Form, HTTPException
 from fastapi.responses import Response
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
@@ -20,20 +20,13 @@ from app.core.permissions import can
 from app.core.utils import format_datetime_for_user, iso, localize_datetime, user_tz
 from app.database import get_db
 from app.models import (
-    AssignedReviewer, Document, Journal, ResearchProject,
-    ResearchProjectCollaborator, User, UserJournalSelection, utcnow,
+    AssignedReviewer, Document, Journal, User, UserJournalSelection, utcnow,
 )
 from app.services import tools_journals
 
 router = APIRouter(prefix="/api/tools", tags=["tools"])
 
 STAGE_DISPLAY = {0: 'Draft', 1: 'Under Review', 2: 'Approved', 3: 'Draft Under Revision'}
-
-
-def _user_projects_stmt(user: User):
-    """ResearchProject.objects.filter(Q(owner=user) | Q(collaborators=user)).distinct()"""
-    collab_ids = select(ResearchProjectCollaborator.project_id).where(ResearchProjectCollaborator.user_id == user.id)
-    return select(ResearchProject).where(or_(ResearchProject.owner_id == user.id, ResearchProject.id.in_(collab_ids)))
 
 
 def _full_name(u: User) -> str:
@@ -45,24 +38,11 @@ def _full_name(u: User) -> str:
 def other_documents_dashboard(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if not can(db, user, 'can_access_other_documents_dashboard'):
         raise HTTPException(403, 'You do not have permission to access the Other Document Types dashboard.')
-    projects = _user_projects_stmt(user).subquery()
-    count = lambda *conds: db.execute(select(func.count()).select_from(projects).where(*conds)).scalar_one()  # noqa: E731
-    total_collaborators = db.execute(
-        select(func.count(func.distinct(ResearchProjectCollaborator.user_id)))
-        .where(ResearchProjectCollaborator.project_id.in_(select(projects.c.id)))
-    ).scalar_one()
     saved_journals_count = db.execute(
         select(func.count(UserJournalSelection.id)).where(UserJournalSelection.user_id == user.id)).scalar_one()
-    recent = db.execute(_user_projects_stmt(user).order_by(ResearchProject.created_at.desc()).limit(5)).scalars().all()
     return {
         'dashboard_type': 'other_documents',
-        'total_projects': count(),
-        'active_projects': count(projects.c.status == 'active'),
-        'completed_projects': count(projects.c.status == 'completed'),
-        'total_collaborators': total_collaborators,
         'saved_journals_count': saved_journals_count,
-        'recent_projects': [{'id': p.id, 'title': p.title, 'status': p.status, 'created_at': iso(p.created_at)}
-                            for p in recent],
     }
 
 
@@ -101,11 +81,6 @@ def analytics(period: str = '30', user: User = Depends(get_current_user), db: Se
     ]
     total_users = scalar(select(func.count(User.id)).where(User.is_active == 1))
     active_users_in_period = scalar(select(func.count(User.id)).where(User.is_active == 1, User.last_login >= start_date))
-    total_projects = scalar(select(func.count(ResearchProject.id)).where(ResearchProject.is_active == 1))
-    active_projects = scalar(select(func.count(ResearchProject.id)).where(
-        ResearchProject.is_active == 1, ResearchProject.actual_end_date.is_(None)))
-    total_collaborations = scalar(select(func.count(ResearchProjectCollaborator.id))
-                                  .where(ResearchProjectCollaborator.is_active == 1))
     total_reviews = scalar(select(func.count(AssignedReviewer.id)).where(AssignedReviewer.is_active == 1))
     completed_reviews = scalar(select(func.count(AssignedReviewer.id)).where(
         AssignedReviewer.is_active == 1, AssignedReviewer.completed_at.is_not(None)))
@@ -143,9 +118,6 @@ def analytics(period: str = '30', user: User = Depends(get_current_user), db: Se
         'documents_by_status': documents_by_status,
         'total_users': total_users,
         'active_users_in_period': active_users_in_period,
-        'total_projects': total_projects,
-        'active_projects': active_projects,
-        'total_collaborations': total_collaborations,
         'total_reviews': total_reviews,
         'completed_reviews': completed_reviews,
         'pending_reviews': pending_reviews,
@@ -163,14 +135,12 @@ def analytics(period: str = '30', user: User = Depends(get_current_user), db: Se
 # ---------------------------------------------------------------- Export data
 @router.get('/export-data')
 def export_data_summary(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    projects = _user_projects_stmt(user).subquery()
     return {
         'page_title': 'Export Data',
         'documents_count': db.execute(select(func.count(Document.id)).where(
             Document.user_id == user.id, Document.is_active == 1)).scalar_one(),
         'journals_count': db.execute(select(func.count(UserJournalSelection.id)).where(
             UserJournalSelection.user_id == user.id)).scalar_one(),
-        'projects_count': db.execute(select(func.count()).select_from(projects)).scalar_one(),
     }
 
 
@@ -213,18 +183,6 @@ def _export_payload(db: Session, user: User, export_type: str) -> dict:
             'selected_at': format_datetime_for_user(js.selected_at, user),
         } for js in selections]
 
-    if export_type in ['all', 'projects']:
-        projects = db.execute(_user_projects_stmt(user).order_by(ResearchProject.created_at.desc())).scalars().all()
-        data['projects'] = [{
-            'id': proj.id,
-            'title': proj.title,
-            'description': proj.description,
-            'status': proj.status,
-            'is_owner': proj.owner_id == user.id,
-            'start_date': proj.start_date.strftime('%Y-%m-%d') if proj.start_date else None,
-            'end_date': proj.end_date.strftime('%Y-%m-%d') if proj.end_date else None,
-            'created_at': format_datetime_for_user(proj.created_at, user),
-        } for proj in projects]
     return data
 
 
@@ -261,15 +219,6 @@ def export_data(export_type: str = Form('all'), export_format: str = Form('json'
                     journal['notes'], journal['selected_at'],
                 ])
             writer.writerow([])
-        if 'projects' in data:
-            writer.writerow(['=== PROJECTS ==='])
-            writer.writerow(['ID', 'Title', 'Description', 'Status', 'Role', 'Start Date', 'End Date', 'Created'])
-            for proj in data['projects']:
-                writer.writerow([
-                    proj['id'], proj['title'], proj['description'], proj['status'],
-                    'Owner' if proj['is_owner'] else 'Collaborator',
-                    proj['start_date'], proj['end_date'], proj['created_at'],
-                ])
         return Response(buf.getvalue(), media_type='text/csv',
                         headers={'Content-Disposition': f'attachment; filename="turavector_export_{stamp}.csv"'})
     # Django left `response` unbound for any other format (UnboundLocalError → 500)

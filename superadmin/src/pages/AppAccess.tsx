@@ -1,7 +1,7 @@
 /**
  * Application Access — which dashboard-selection cards each user sees.
  * Set per user (Visible / Hidden); roles don't decide cards. Superusers always see every card,
- * managers always see Content Lab.
+ * managers always see Content Review.
  */
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -65,7 +65,7 @@ export default function AppAccess() {
     <>
       <Crumbs items={[{ label: 'Application Access' }]} />
       <PageHeader title="Application Access"
-        subtitle="Choose, for each user, which cards they see on the dashboard-selection page. Superusers always see every card; managers always see Content Lab." />
+        subtitle="Choose, for each user, which cards they see on the dashboard-selection page. Superusers always see every card; managers always see Content Review." />
       <ScopeBanner scope="workspace" />
 
       <section className="panel">

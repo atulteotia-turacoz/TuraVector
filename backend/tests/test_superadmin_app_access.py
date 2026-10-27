@@ -1,6 +1,6 @@
 """Dashboard-selection cards are set per user (Visible / Hidden); roles never decide them."""
 from app.models import RolePermission, User, UserRole
-from app.services.external_apps import CARD_BY_KEY, card_permission
+from app.services.external_apps import card_by_key, card_permission
 
 
 def _cards(client, h):
@@ -39,7 +39,7 @@ def test_roles_do_not_decide_cards(client, login_as, db):
     """Granting a card's permission to the user's role must not show the card."""
     t = db.query(User).filter(User.username == "teacher1").one()
     role_id = db.query(UserRole).filter(UserRole.user_id == t.id).first().role_id
-    db.add(RolePermission(role_id=role_id, permission_id=card_permission(db, CARD_BY_KEY["ext_turagrammar"]).id))
+    db.add(RolePermission(role_id=role_id, permission_id=card_permission(db, card_by_key(db, "ext_turagrammar")).id))
     db.commit()
     assert "ext_turagrammar" not in _cards(client, login_as("teacher1"))
 

@@ -138,6 +138,9 @@ PageSourceMatch = PlagiarismPagesourcematch
 from app.models.organisations import Organisation, OrgAssignment, OrgMembership  # noqa: E402,F401
 from app.models.payments import PaymentGateway  # noqa: E402,F401
 from app.models.rates import RateCardItem, RateService  # noqa: E402,F401
+from app.models.subscriptions import (  # noqa: E402,F401
+    OrgSubscription, PlatformTool, SubscriptionPlan, SubscriptionPlanTool,
+)
 from app.models.billing import (  # noqa: E402,F401
     BillingApprover, BillingRequest, BillingRequestItem, BillingSettings, Invoice, InvoiceEvent, InvoiceLine,
     OrgBillingProfile,

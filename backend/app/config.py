@@ -92,6 +92,8 @@ class Settings(BaseSettings):
     TURA_RESEARCH_ASSISTANT_URL: str = "https://turaresearchassistant.turacoz.com/login"
     TURA_LMS_URL: str = "https://turalms.turacoz.com/login/index.php"
     TURAGRAMMAR_URL: str = "https://turagrammar.turacoz.com/"
+    TURASTATISTICS_URL: str = "https://statistics.turacoz.com/"
+    TURASLR_URL: str = "https://turaslr.turacoz.com/login"
     # Single sign-on into those apps (app/services/external_apps_sso.py). An app whose SSO
     # settings are blank keeps opening its normal login page.
     SSO_TICKET_TTL_SECONDS: int = 60
@@ -99,6 +101,10 @@ class Settings(BaseSettings):
     TURA_RESEARCH_ASSISTANT_SSO_SECRET: str = ""  # same value as TURADOME_SSO_SECRET in that app
     TURAGRAMMAR_SSO_URL: str = ""                 # e.g. https://turagrammar.turacoz.com/sso
     TURAGRAMMAR_SSO_SECRET: str = ""              # same value as TURADOME_SSO_SECRET in that app
+    TURASTATISTICS_SSO_URL: str = ""              # e.g. https://statistics.turacoz.com/sso
+    TURASTATISTICS_SSO_SECRET: str = ""           # same value as TURAVECTOR_SSO_SECRET in that app
+    TURASLR_SSO_URL: str = ""                     # e.g. https://turaslr.turacoz.com/sso
+    TURASLR_SSO_SECRET: str = ""                  # same value as TURAVECTOR_SSO_SECRET in that app
     TURA_LMS_BASE_URL: str = "https://turalms.turacoz.com"
     TURA_LMS_WS_TOKEN: str = ""                   # Moodle web-service token for auth_userkey
 

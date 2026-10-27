@@ -12,6 +12,7 @@ export interface OrgRow {
   id: number; name: string; kind: 'university' | 'organisation' | 'individual' | 'system'; website: string; logo_url: string | null;
   status: 'pending' | 'active' | 'rejected' | 'suspended'; slug: string; join_code: string | null; members: number;
   pending_requests: number; admins: string[]; created_at: string | null; approved_at: string | null;
+  requested_plan?: string;
 }
 
 interface Resp { organisations: OrgRow[]; status_counts: Record<string, number> }
@@ -98,7 +99,8 @@ export default function Organisations() {
                     <td>
                       <Link to={`/organisations/${o.id}/`} className="org-cell">
                         <OrgLogo org={o} />
-                        <span><strong>{o.name}</strong>{o.website && <span className="tiny faint" style={{ display: 'block' }}>{o.website}</span>}</span>
+                        <span><strong>{o.name}</strong>{o.website && <span className="tiny faint" style={{ display: 'block' }}>{o.website}</span>}
+                          {o.requested_plan && <span className="tiny" style={{ display: 'block' }}>Plan chosen: <strong>{o.requested_plan}</strong></span>}</span>
                       </Link>
                     </td>
                     <td className="cap">{o.kind}</td>

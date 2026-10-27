@@ -26,6 +26,8 @@ from app.models import (
 )
 
 
+pytestmark = pytest.mark.usefixtures("stand_ins")
+
 def _user(db, username):
     return db.query(User).filter(User.username == username).one()
 

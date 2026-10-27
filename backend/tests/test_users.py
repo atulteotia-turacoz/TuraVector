@@ -233,7 +233,7 @@ def test_legacy_role_crud_and_user_permissions(client, admin, db):
     r = client.post(f"/api/users/{u.id}/permissions", headers=admin,
                     json={"action": "deny_permission", "permission_id": str(p.id), "reason": "test"})
     assert r.json()["message"].startswith(f'Permission "') and "denied for Tmp User" in r.json()["message"]
-    # (new users also get an automatic Content Lab card row, so look up the permission set here)
+    # (new users also get an automatic Content Review card row, so look up the permission set here)
     up = db.execute(select(UserPermission).where(UserPermission.user_id == u.id, UserPermission.permission_id == p.id)).scalar_one()
     assert up.is_granted == 0 and up.reason == "test"
     client.post(f"/api/users/{u.id}/permissions", headers=admin, json={"action": "grant_permission", "permission_id": str(p.id)})
@@ -295,11 +295,11 @@ def test_dashboard_permission_toggle(client, admin, db):
     db.commit()
     body = {"role_id": role.id, "permission_id": perm_id, "action": "grant"}
     r = client.post("/api/rbac/toggle-role-dashboard-permission", headers=admin, json=body)
-    assert r.json()["message"] == 'Dashboard access "Content Lab - Dashboard Access" granted to role "Zz Toggle Role"'
+    assert r.json()["message"] == 'Dashboard access "Content Review - Dashboard Access" granted to role "Zz Toggle Role"'
     assert client.post("/api/rbac/toggle-role-dashboard-permission", headers=admin, json=body).json()["message"] == \
         'Role "Zz Toggle Role" already has this permission'
     r = client.post("/api/rbac/toggle-role-dashboard-permission", headers=admin, json={**body, "action": "revoke"})
-    assert r.json()["message"] == 'Dashboard access "Content Lab - Dashboard Access" revoked from role "Zz Toggle Role"'
+    assert r.json()["message"] == 'Dashboard access "Content Review - Dashboard Access" revoked from role "Zz Toggle Role"'
     assert client.post("/api/rbac/toggle-role-dashboard-permission", headers=admin, json={**body, "action": "x"}).status_code == 400
 
 

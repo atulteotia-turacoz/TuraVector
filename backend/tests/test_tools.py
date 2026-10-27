@@ -374,27 +374,35 @@ def test_journal_search_requires_query(client, login_as):
 def test_other_documents_dashboard(client, login_as):
     r = client.get("/api/tools/other-documents", headers=login_as("admin"))
     assert r.status_code == 200
-    assert {"active_projects", "total_collaborators", "saved_journals_count"} <= set(r.json())
+    assert r.json() == {"dashboard_type": "other_documents", "saved_journals_count": r.json()["saved_journals_count"]}
 
+
+
+def test_projects_are_removed(client, login_as):
+    h = login_as("admin")
+    for url in ("/api/projects", "/api/projects/all-collaborators", "/api/projects/collaborators"):
+        assert client.get(url, headers=h).status_code == 404, url
 
 @pytest.mark.parametrize("period", ["7", "30", "all", "bogus"])
 def test_analytics(client, login_as, period):
     r = client.get("/api/tools/analytics", params={"period": period}, headers=login_as("admin"))
     assert r.status_code == 200
     b = r.json()
+    assert not any("project" in k or "collaboration" in k for k in b)
     assert len(b["monthly_uploads"]) == 6
     assert b["total_reviews"] == b["completed_reviews"] + b["pending_reviews"]
     if period == "bogus":
         assert b["period_label"] == "Last 30 days"
 
 
-@pytest.mark.parametrize("export_type", ["all", "documents", "journals", "projects"])
+@pytest.mark.parametrize("export_type", ["all", "documents", "journals"])
 def test_export_json_and_csv(client, login_as, export_type):
     h = login_as("admin")
     summary = client.get("/api/tools/export-data", headers=h).json()
     r = client.post("/api/tools/export-data", data={"export_type": export_type, "export_format": "json"}, headers=h)
     assert r.status_code == 200 and "turavector_export_" in r.headers["content-disposition"]
     data = json.loads(r.text)
+    assert "projects" not in data and "projects_count" not in summary
     if export_type in ("all", "documents"):
         assert len(data["documents"]) == summary["documents_count"]
     r = client.post("/api/tools/export-data", data={"export_type": export_type, "export_format": "csv"}, headers=h)

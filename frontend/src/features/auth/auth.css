@@ -45,9 +45,9 @@
 .au-select-head { text-align: center; margin-bottom: 30px; }
 .au-select-head h1 { font-family: var(--serif); font-size: 32px; margin: 0 0 6px; }
 .au-select-head p { color: var(--ink-2); margin: 0; }
-.au-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.au-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
 .au-option {
-  display: block; text-align: left; background: var(--card); border: 1px solid var(--hairline);
+  display: flex; flex-direction: column; text-align: left; background: var(--card); border: 1px solid var(--hairline);
   padding: 26px 26px 22px; color: var(--ink); transition: border-color 120ms ease, transform 120ms ease;
 }
 .au-option:hover { border-color: var(--accent); }
@@ -142,3 +142,8 @@
 .au-done-icon { color: var(--ok); }
 .au-done h2 { margin: 0; font-family: var(--serif); font-size: 22px; }
 .au-done p { margin: 0 0 8px; color: var(--ink-2); max-width: 420px; line-height: 1.5; }
+
+/* sign-up: live username check */
+.au-un-ok { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12.5px; color: var(--ok); }
+.au-un-suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.au-un-suggest .pl-chip { padding: 4px 9px; font-size: 12.5px; font-family: var(--mono); }

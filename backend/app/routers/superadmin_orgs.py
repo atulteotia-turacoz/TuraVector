@@ -9,8 +9,8 @@ from app.core.files import delete_file
 from app.core.tenancy import platform_wide_scope
 from app.core.utils import iso, user_type_display
 from app.database import get_db
-from app.models import Document, Organisation, OrgAssignment, OrgMembership, User, utcnow
-from app.services import org_accounts, review_reports
+from app.models import Document, Organisation, OrgAssignment, OrgMembership, OrgSubscription, User, utcnow
+from app.services import org_accounts, review_reports, subscriptions
 from app.services.org_common import (
     ASSIGNMENT_LABELS, add_membership, assign_default_role, assign_team_member, contacts, new_join_code, org_payload,
     set_poc, system_team, unique_slug,
@@ -67,10 +67,15 @@ def list_organisations(status: str = "", kind: str = "", q: str = "", _=Depends(
             select(OrgMembership.organisation_id, OrgMembership.status, func.count())
             .where(OrgMembership.organisation_id.in_(ids)).group_by(OrgMembership.organisation_id, OrgMembership.status)).all()}
     admins = _admin_names(db, ids)
+    # the plan a waiting university / organisation chose while registering
+    pending_ids = [o.id for o in orgs if o.status == "pending"]
+    requested = dict(db.execute(select(OrgSubscription.organisation_id, OrgSubscription.plan_name).where(
+        OrgSubscription.organisation_id.in_(pending_ids), OrgSubscription.status == "pending",
+        OrgSubscription.notes == subscriptions.REQUESTED_NOTE)).all()) if pending_ids else {}
     status_counts = dict(db.execute(select(Organisation.status, func.count()).group_by(Organisation.status)).all())
     return {
-        "organisations": [_row(o, counts.get((o.id, "active"), 0), counts.get((o.id, "pending"), 0), admins.get(o.id, []))
-                          for o in orgs],
+        "organisations": [{**_row(o, counts.get((o.id, "active"), 0), counts.get((o.id, "pending"), 0), admins.get(o.id, [])),
+                           "requested_plan": requested.get(o.id, "")} for o in orgs],
         "status_counts": {s: status_counts.get(s, 0) for s in STATUSES},
     }
 
@@ -167,6 +172,11 @@ def set_status(org_id: int, body: StatusIn, superuser: User = Depends(require_su
     org.status = body.status
     if body.status == "active" and org.approved_at is None:
         org.approved_at, org.approved_by_id = utcnow(), superuser.id
+        subscriptions.start_requested(db, org)  # the plan chosen at sign-up (trial starts from approval)
+    elif body.status == "rejected":
+        requested = subscriptions.requested_plan(db, org)
+        if requested is not None:
+            requested.status, requested.notes = "cancelled", "Workspace registration was rejected."
     db.commit()
     org_accounts.notify_organisation_decision(db, org)
     return {"message": f"{org.name} is now {org.status}."}

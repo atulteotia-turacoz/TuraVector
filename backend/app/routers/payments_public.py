@@ -9,7 +9,7 @@ from app.core.deps import get_current_user
 from app.core.tenancy import unfiltered
 from app.database import get_db
 from app.models import Invoice, User
-from app.services import billing, payments
+from app.services import billing, payments, subscriptions
 
 router = APIRouter(prefix="/api/payments", tags=["payments"])
 
@@ -21,7 +21,8 @@ def checkout_config(_: User = Depends(get_current_user), db: Session = Depends(g
 
 @router.post("/razorpay/webhook")
 async def razorpay_webhook(request: Request, db: Session = Depends(get_db)):
-    """Backup for the checkout callback: `payment.captured` / `order.paid` mark the invoice paid.
+    """Backup for the checkout callback: `payment.captured` / `order.paid` mark the invoice paid (or
+    activate the plan the order was for).
     Set the webhook URL and secret in the Razorpay dashboard and under Payment Gateways."""
     body = await request.body()
     gw = payments.get(db, "razorpay")
@@ -37,6 +38,9 @@ async def razorpay_webhook(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(400, "Unreadable event") from None
     if event.get("event") not in ("payment.captured", "order.paid") or not order_id:
         return {"ok": True, "ignored": True}
+    if subscriptions.paid_by_webhook(db, order_id, payment.get("id") or ""):  # a plan bought from the Plans page
+        db.commit()
+        return {"ok": True}
     with unfiltered(db):
         inv = db.execute(select(Invoice).where(Invoice.gateway_order_id == order_id)).scalar_one_or_none()
     if inv is None or inv.status != "awaiting_payment":

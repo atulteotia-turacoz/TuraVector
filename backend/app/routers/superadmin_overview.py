@@ -12,7 +12,7 @@ from app.database import get_db
 from app.services.superadmin_scope import workspace_of
 from app.models import (
     Document, DocumentVersion, EmailLog, LoginLog, OrgMembership, ReferenceDocument, ReferenceZip,
-    ResearchProject, SMTPSettings, User, utcnow,
+    SMTPSettings, User, utcnow,
 )
 
 router = APIRouter(prefix="/api/superadmin", tags=["superadmin"])
@@ -57,7 +57,6 @@ def overview(db: Session = Depends(get_db), user: User = Depends(require_superus
     library = {
         "references": _count(db, select(ReferenceDocument.id).where(ReferenceDocument.is_active == 1)),
         "zips": _count(db, select(ReferenceZip.id)),
-        "projects": _count(db, select(ResearchProject.id)),
     }
 
     email_rows = db.execute(select(EmailLog.status, func.count(EmailLog.id)).group_by(EmailLog.status)).all()

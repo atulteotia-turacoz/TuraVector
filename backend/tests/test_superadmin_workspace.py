@@ -36,7 +36,7 @@ def test_changelist_and_object_follow_the_chosen_workspace(client, login_as, two
     smbt, other, outsider, up = two_workspaces
     url = "/api/superadmin/models/authentication/userpermission/"
     in_other = client.get(url, headers=_h(login_as, other)).json()
-    # the scope test grant + the "Content Lab visible" grant every new user gets
+    # the scope test grant + the "Content Review visible" grant every new user gets
     assert in_other["count"] == 2 and in_other["full_count"] == 2
     in_smbt = client.get(url, headers=_h(login_as, smbt)).json()
     assert all(str(up.id) != str(r["pk"]) for r in in_smbt["rows"])

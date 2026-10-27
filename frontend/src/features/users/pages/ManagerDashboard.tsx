@@ -177,7 +177,7 @@ export default function ManagerDashboard() {
 
   return (
     <div className="md">
-      <PageHeader eyebrow="Content Lab" title="Dashboard" subtitle="Every document across your team, and what is waiting on you."
+      <PageHeader eyebrow="Content Review" title="Dashboard" subtitle="Every document across your team, and what is waiting on you."
         actions={<>
           <Link className="btn btn-secondary" to="/content-lab-management/reports/"><BarChart3 size={14} /> Reports</Link>
           <Link className="btn btn-primary" to="/content-lab-management/upload/"><Upload size={14} /> Upload document</Link>

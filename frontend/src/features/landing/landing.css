@@ -45,9 +45,19 @@
 .ld-foot a { color: var(--ink-2); }
 .ld-foot a:hover { color: var(--ink); }
 
+.ld-tabs { display: inline-flex; border: 1px solid var(--hairline); margin-bottom: 18px; max-width: 100%; overflow-x: auto; }
+.ld-tabs button { background: var(--paper); border: 0; padding: 8px 14px; font-size: 13.5px; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.ld-tabs button + button { border-left: 1px solid var(--hairline); }
+.ld-tabs button:hover { color: var(--ink); }
+.ld-tabs button.is-on { background: var(--accent-soft); color: var(--accent); }
+.ld-plans-note { margin-top: 14px; }
+
 @media (max-width: 960px) { .ld-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) {
   .ld-wrap { padding: 0 16px; }
+  .ld-top-inner { gap: 12px; }
+  .ld-top-inner > .row { gap: 6px; }
+  .ld-top-inner .btn svg { display: none; }
   .ld-hero { padding: 56px 0 48px; }
   .ld-section { padding: 48px 0; }
   .ld-grid, .ld-steps { grid-template-columns: 1fr; }

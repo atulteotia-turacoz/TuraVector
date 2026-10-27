@@ -1,8 +1,7 @@
 /** Port of templates/documents/other_documents_profile.html (other_documents_profile_view). */
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ChartColumn, CircleUser, Crown, Folder, FolderKanban, Globe, Info, KeyRound, Pencil, Save } from 'lucide-react';
+import { CircleUser, Crown, Globe, Info, KeyRound, Pencil, Save } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
 import { formatDate } from '@/lib/format';
@@ -12,14 +11,8 @@ import { apiError, formatDateTime24, useTimezoneAutoDetect } from './utils';
 import './auth.css';
 
 interface OdProfile {
-  owned_projects_count: number;
-  collaborated_projects_count: number;
   total_documents: number;
   total_versions: number;
-  pending_milestones: number;
-  in_progress_milestones: number;
-  completed_milestones: number;
-  recent_projects: { id: number; title: string; created_at: string }[];
 }
 
 export default function OtherDocumentsProfilePage() {
@@ -78,10 +71,8 @@ export default function OtherDocumentsProfilePage() {
             {q.isError && <div className="panel-body"><ErrorNotice error={q.error} /></div>}
             {d && (
               <div className="stat-grid" style={{ border: 0, borderBottom: '1px solid var(--hairline)' }}>
-                <Stat value={d.owned_projects_count} label="Owned Projects" />
-                <Stat value={d.collaborated_projects_count} label="Collaborated Projects" />
                 <Stat value={d.total_documents} label="Total Documents" />
-                <Stat value={d.in_progress_milestones} label="Active Milestones" />
+                <Stat value={d.total_versions} label="Document Versions" />
               </div>
             )}
           </section>
@@ -96,31 +87,6 @@ export default function OtherDocumentsProfilePage() {
               {user.timezone && <><dt>Timezone</dt><dd>{user.timezone}</dd></>}
             </dl>
           </Panel>
-
-          {d && (
-            <Panel title={<span className="row-tight"><ChartColumn size={15} /> Project Statistics</span>}>
-              <dl className="kv" style={{ margin: 0 }}>
-                <dt>Pending Milestones</dt><dd>{d.pending_milestones}</dd>
-                <dt>In Progress Milestones</dt><dd>{d.in_progress_milestones}</dd>
-                <dt>Completed Milestones</dt><dd>{d.completed_milestones}</dd>
-                <dt>Document Versions</dt><dd>{d.total_versions}</dd>
-              </dl>
-            </Panel>
-          )}
-
-          {d && d.recent_projects.length > 0 && (
-            <Panel title={<span className="row-tight"><FolderKanban size={15} /> Recent Projects</span>}>
-              {d.recent_projects.map((p) => (
-                <Link key={p.id} to={`/journal-selector/projects/${p.id}/`} className="au-project-item">
-                  <span className="au-project-icon"><Folder size={15} /></span>
-                  <span>
-                    <h3>{p.title}</h3>
-                    <span className="small muted">Created {formatDate(p.created_at)}</span>
-                  </span>
-                </Link>
-              ))}
-            </Panel>
-          )}
 
           <Panel title={<span className="row-tight"><Pencil size={15} /> Edit Information</span>}>
             <form onSubmit={submit} id="profileForm">

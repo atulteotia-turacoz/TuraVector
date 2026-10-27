@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { AppWindow, Bell, Building2, ChevronDown, CreditCard, ExternalLink, Globe2, KeyRound, Landmark, LayoutDashboard, LifeBuoy, LogOut, Mail, Menu, MessageSquare, MessageSquareText, ReceiptIndianRupee, ReceiptText, Settings2, Shield, ShieldAlert, Tags, Users, X } from 'lucide-react';
+import { AppWindow, BadgeIndianRupee, Bell, Blocks, Building2, ChevronDown, CreditCard, ExternalLink, Globe2, KeyRound, Landmark, LayoutDashboard, LifeBuoy, LogOut, Mail, Menu, MessageSquare, MessageSquareText, ReceiptIndianRupee, ReceiptText, Repeat, Settings2, Shield, ShieldAlert, Tags, Users, X } from 'lucide-react';
 import { useAuth, useUser } from '@/lib/auth';
 import { SMTP_SETTINGS_PATH, useIndex } from '@/lib/admin';
 import { initials } from '@/lib/format';
@@ -107,6 +107,7 @@ const MAIN_MENU: MenuItem[] = [
   { label: 'All Users', icon: <Users size={16} />, to: '/library/manage-users/',
     match: ['/library/manage-users/', '/library/create-user/', '/library/bulk-import-users/', '/library/user/'] },
   { label: 'Invoices', icon: <ReceiptText size={16} />, to: '/invoices/' },
+  { label: 'Subscriptions', icon: <Repeat size={16} />, to: '/subscriptions/' },
   { label: 'Contact Queries', icon: <MessageSquare size={16} />, to: '/authentication/contactquery/' },
   { label: 'Email Logs', icon: <Mail size={16} />, to: '/documents/mail-logs/', match: ['/documents/mail-logs/', '/documents/emaillog/'] },
   { label: 'Feedback', icon: <MessageSquareText size={16} />, to: '/documents/feedback/' },
@@ -118,6 +119,8 @@ const MAIN_MENU: MenuItem[] = [
 const PLATFORM_MENU: MenuItem[] = [
   { label: 'Permissions Management', icon: <Shield size={16} />, to: '/library/permissions/dashboard/',
     match: ['/library/permissions/', '/library/roles/', '/library/role/'] },
+  { label: 'Tools & Services', icon: <Blocks size={16} />, to: '/tools/' },
+  { label: 'Plans & Pricing', icon: <BadgeIndianRupee size={16} />, to: '/plans/' },
   { label: 'Application Access', icon: <AppWindow size={16} />, to: '/app-access/' },
   { label: 'Manage Categories', icon: <Tags size={16} />, children: [
     { label: 'Document Types', to: '/documents/categories/document-types/', match: ['/documents/categories/document-types/', '/documents/bulk-import/document-types/'] },

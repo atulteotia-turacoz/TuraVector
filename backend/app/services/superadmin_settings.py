@@ -40,10 +40,12 @@ SECTIONS: list[tuple[str, list[str]]] = [
     ("Office 365", ["MICROSOFT_CLIENT_ID", "MICROSOFT_CLIENT_SECRET", "MICROSOFT_TENANT_ID", "MICROSOFT_ONEDRIVE_USER_ID"]),
     ("PDFTron", ["PDFTRON_ENABLED", "PDFTRON_LICENSE_KEY", "PDFTRON_VERSION", "PDFTRON_PATH"]),
     ("Document security", ["ALLOW_DOCUMENT_DOWNLOAD", "DOCUMENT_WATERMARK", "DOCUMENT_PRINT_DISABLED"]),
-    ("Tura applications", ["TURA_RESEARCH_ASSISTANT_URL", "TURA_LMS_URL", "TURAGRAMMAR_URL"]),
+    ("Tura applications", ["TURA_RESEARCH_ASSISTANT_URL", "TURA_LMS_URL", "TURAGRAMMAR_URL", "TURASTATISTICS_URL", "TURASLR_URL"]),
     ("Tura applications — single sign-on", ["SSO_TICKET_TTL_SECONDS",
                                             "TURA_RESEARCH_ASSISTANT_SSO_URL", "TURA_RESEARCH_ASSISTANT_SSO_SECRET",
                                             "TURAGRAMMAR_SSO_URL", "TURAGRAMMAR_SSO_SECRET",
+                                            "TURASTATISTICS_SSO_URL", "TURASTATISTICS_SSO_SECRET",
+                                            "TURASLR_SSO_URL", "TURASLR_SSO_SECRET",
                                             "TURA_LMS_BASE_URL", "TURA_LMS_WS_TOKEN"]),
     ("Journal APIs", ["SPRINGER_API_KEY", "ELSEVIER_API_KEY", "PUBMED_API_KEY"]),
     ("Storage", ["MEDIA_ROOT", "FILE_UPLOAD_MAX_SIZE", "TIME_ZONE"]),
@@ -52,7 +54,7 @@ SECTIONS: list[tuple[str, list[str]]] = [
 
 SECRET_KEYS = {"EMAIL_HOST_PASSWORD", "ONLYOFFICE_JWT_SECRET", "ONLYOFFICE_EDITOR_JWT_SECRET", "MICROSOFT_CLIENT_SECRET",
                "PDFTRON_LICENSE_KEY",
-               "TURA_RESEARCH_ASSISTANT_SSO_SECRET", "TURAGRAMMAR_SSO_SECRET", "TURA_LMS_WS_TOKEN",
+               "TURA_RESEARCH_ASSISTANT_SSO_SECRET", "TURAGRAMMAR_SSO_SECRET", "TURASTATISTICS_SSO_SECRET", "TURASLR_SSO_SECRET", "TURA_LMS_WS_TOKEN",
                "SPRINGER_API_KEY", "ELSEVIER_API_KEY", "PUBMED_API_KEY",
                "DB_PASSWORD", "SECRET_KEY"}
 # Never returned, never revealed, never editable here.
@@ -62,7 +64,8 @@ READ_ONLY_KEYS = {"DB_HOST", "DB_PORT", "DB_NAME", "DB_USER"} | HIDDEN_KEYS
 RESTART_KEYS = {"DB_HOST", "DB_PORT", "DB_NAME", "DB_USER", "DB_PASSWORD", "SECRET_KEY", "CORS_ORIGINS", "MEDIA_ROOT"}
 CHOICES = {"EMAIL_BACKEND": [["console", "Console (log only)"], ["smtp", "SMTP"]]}
 # Shared secrets the admin may generate in the UI (then copy into the other app's .env).
-GENERATE_KEYS = {"TURA_RESEARCH_ASSISTANT_SSO_SECRET", "TURAGRAMMAR_SSO_SECRET"}
+GENERATE_KEYS = {"TURA_RESEARCH_ASSISTANT_SSO_SECRET", "TURAGRAMMAR_SSO_SECRET", "TURASTATISTICS_SSO_SECRET",
+                 "TURASLR_SSO_SECRET"}
 MIN_LENGTH = {k: 32 for k in GENERATE_KEYS}
 INT_RANGE = {"SSO_TICKET_TTL_SECONDS": (10, 600)}
 
@@ -99,6 +102,8 @@ HELP = {
     "TURA_RESEARCH_ASSISTANT_URL": "Link opened by the Tura Research Assistant card on the dashboard-selection page.",
     "TURA_LMS_URL": "Link opened by the Tura LMS card on the dashboard-selection page.",
     "TURAGRAMMAR_URL": "Link opened by the TuraGrammar card on the dashboard-selection page.",
+    "TURASTATISTICS_URL": "Link opened by the TuraStatistics card on the dashboard-selection page.",
+    "TURASLR_URL": "Link opened by the TuraSLR card on the dashboard-selection page.",
     "SSO_TICKET_TTL_SECONDS": "How long (seconds) a single sign-on link stays valid after a card is clicked. 10–600; 60 is recommended.",
     "TURA_RESEARCH_ASSISTANT_SSO_URL": "SSO page of Tura Research Assistant, e.g. https://turaresearchassistant.turacoz.com/sso. "
                                        "Blank = the card opens the normal login page.",
@@ -108,6 +113,14 @@ HELP = {
                            "Blank = the card opens the normal login page.",
     "TURAGRAMMAR_SSO_SECRET": "Shared signing secret (32+ characters). Put the same value in TuraGrammar's "
                               "api/.env as TURADOME_SSO_SECRET and restart it.",
+    "TURASTATISTICS_SSO_URL": "SSO page of TuraStatistics, e.g. https://statistics.turacoz.com/sso. "
+                              "Blank = the card opens the normal sign-in page.",
+    "TURASTATISTICS_SSO_SECRET": "Shared signing secret (32+ characters). Put the same value in TuraStatistics' "
+                                 ".env.local as TURAVECTOR_SSO_SECRET and restart it.",
+    "TURASLR_SSO_URL": "SSO page of TuraSLR, e.g. https://turaslr.turacoz.com/sso. "
+                       "Blank = the card opens the normal sign-in page.",
+    "TURASLR_SSO_SECRET": "Shared signing secret (32+ characters). Put the same value in TuraSLR's "
+                          "backend/.env as TURAVECTOR_SSO_SECRET and restart it.",
     "TURA_LMS_BASE_URL": "Moodle site root, e.g. https://turalms.turacoz.com (used to call its web service).",
     "TURA_LMS_WS_TOKEN": "Moodle web-service token for the auth_userkey plugin. Blank = the LMS card opens the normal login page.",
     "SPRINGER_API_KEY": "Springer Nature metadata API key (journal selector).",

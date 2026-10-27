@@ -1,6 +1,6 @@
 /**
  * The two authenticated layouts of the original app:
- *  - "main"  ⇐ templates/base.html  (Content Lab sidebar, quick stats, notification bell)
+ *  - "main"  ⇐ templates/base.html  (Content Review sidebar, quick stats, notification bell)
  *  - "other" ⇐ templates/other_documents_base.html (Other Documents sidebar)
  * Menu items and their permission gates are copied one-for-one from those templates.
  */
@@ -8,7 +8,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Archive, ArrowLeftRight, BarChart3, Landmark, ReceiptText, Bell, BookOpen, Building2, ChevronDown, FolderKanban, Gauge, Library, LifeBuoy, LineChart, LogOut, Menu, Presentation, Shield, Upload, User, UserCheck, Users, X,
+  Archive, ArrowLeftRight, BarChart3, Landmark, ReceiptText, Bell, BookOpen, Building2, ChevronDown, CreditCard, Gauge, Library, LifeBuoy, LineChart, LogOut, Menu, Presentation, Shield, Upload, User, UserCheck, X,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
@@ -43,11 +43,9 @@ function useOtherNav(): NavItem[] {
   const user = useUser();
   return [
     { to: '/journal-selector/dashboard/', label: 'Dashboard', icon: <Gauge size={16} />, show: true },
-    { to: '/journal-selector/projects/', label: 'Projects', icon: <FolderKanban size={16} />, show: true },
     { to: '/journal-selector/journals/', label: 'Journal Selector', icon: <BookOpen size={16} />, show: true },
     { to: '/journal-selector/conference-selector/', label: 'Conference Selector', icon: <Presentation size={16} />, show: true },
     { to: '/journal-selector/analytics/', label: 'Analytics', icon: <LineChart size={16} />, show: true },
-    { to: '/journal-selector/all-collaborators-projects/', label: 'Project Collaborators', icon: <Users size={16} />, show: true },
     { to: '/journal-selector/export-data/', label: 'Reports', icon: <BarChart3 size={16} />, show: user.is_manager_like },
   ];
 }
@@ -164,6 +162,9 @@ export function UserMenu({ profilePath }: { profilePath: string }) {
       {open && (
         <div className="pop">
           <Link className="pop-item" to={profilePath} onClick={() => setOpen(false)}><User size={14} /> Profile</Link>
+          {(user.organisation?.kind === 'individual' || user.is_org_admin) && (
+            <Link className="pop-item" to="/plans/" onClick={() => setOpen(false)}><CreditCard size={14} /> Plans &amp; billing</Link>
+          )}
           <Link className="pop-item" to="/content-lab-management/notifications/" onClick={() => setOpen(false)}><Bell size={14} /> Notifications</Link>
           <Link className="pop-item" to="/content-lab-management/help-support/" onClick={() => setOpen(false)}><LifeBuoy size={14} /> Help &amp; Support</Link>
           <div className="pop-sep" />

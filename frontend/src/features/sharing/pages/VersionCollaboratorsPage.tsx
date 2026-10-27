@@ -172,7 +172,7 @@ export default function VersionCollaboratorsPage() {
                   {s.role_required && <div className="tiny muted" style={{ marginTop: 4 }}>Requires: {s.role_required.name}</div>}
                 </div>
                 <div>
-                  <div className="proj-perm-badges">
+                  <div className="sh-perm-badges">
                     {s.can_share && <Badge>Can Share</Badge>}
                     {s.can_download && <Badge>Can Download</Badge>}
                     {s.can_annotate && <Badge>Can Annotate</Badge>}

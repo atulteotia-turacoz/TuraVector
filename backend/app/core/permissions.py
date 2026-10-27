@@ -164,8 +164,6 @@ CAPABILITIES: dict[str, tuple[str, str, str]] = {
     # NB: Django defines can_assign_reviewers twice; the later (cl_review/assign) wins.
     "can_assign_reviewers": ("content_lab", "cl_review", "assign"),
     "can_access_other_documents": ("other_documents", "od_dashboard", "view"),
-    "can_manage_projects": ("other_documents", "od_projects", "view"),
-    "can_create_projects": ("other_documents", "od_projects", "create"),
     "can_search_journals": ("other_documents", "od_journals", "search"),
     "can_access_reviews": ("content_lab", "cl_review", "view"),
     "can_view_completed": ("content_lab", "cl_completed", "view"),
@@ -183,17 +181,39 @@ def user_capabilities(db: Session, user: User) -> dict[str, bool]:
     checker = PermissionChecker(db, user)
     caps = {name: checker.has(*spec) for name, spec in CAPABILITIES.items()}
     # These two always pass for superusers in Django, then fall back to the permission
-    caps["can_access_content_lab_dashboard"] = checker.has("content_lab", "cl_dashboard_access", "view")
-    caps["can_access_other_documents_dashboard"] = checker.has("other_documents", "od_dashboard_access", "view")
+    for name, (tool, dashboard, module) in _DASHBOARD_CAPS.items():
+        caps[name] = checker.has(dashboard, module, "view") or (
+            (dashboard, module, "view") not in checker.direct and _has_tool(db, user, tool))
     return caps
+
+
+# The two dashboard-access capabilities are also opened by a plan (or a free tool) that includes the
+# dashboard — unless the user has an explicit per-user setting, which always decides.
+_DASHBOARD_CAPS = {
+    "can_access_content_lab_dashboard": ("content_lab", "content_lab", "cl_dashboard_access"),
+    "can_access_other_documents_dashboard": ("other_documents", "other_documents", "od_dashboard_access"),
+}
+
+
+def _has_tool(db: Session, user: User, tool: str) -> bool:
+    from app.services.subscriptions import has_tool
+    return has_tool(db, user, tool)
+
+
+def _has_direct_setting(db: Session, user: User, dashboard: str, module: str) -> bool:
+    return db.execute(
+        select(UserPermission.id).join(Permission, UserPermission.permission_id == Permission.id)
+        .where(UserPermission.user_id == user.id, Permission.dashboard == dashboard, Permission.module == module,
+               Permission.action == "view", Permission.is_active == 1).limit(1)
+    ).first() is not None
 
 
 def can(db: Session, user: User, capability: str) -> bool:
     """Check one named capability, e.g. can(db, user, "can_view_all_documents")."""
-    if capability == "can_access_content_lab_dashboard":
-        return has_module_permission(db, user, "content_lab", "cl_dashboard_access", "view")
-    if capability == "can_access_other_documents_dashboard":
-        return has_module_permission(db, user, "other_documents", "od_dashboard_access", "view")
+    if capability in _DASHBOARD_CAPS:
+        tool, dashboard, module = _DASHBOARD_CAPS[capability]
+        return has_module_permission(db, user, dashboard, module, "view") or (
+            not _has_direct_setting(db, user, dashboard, module) and _has_tool(db, user, tool))
     return has_module_permission(db, user, *CAPABILITIES[capability])
 
 

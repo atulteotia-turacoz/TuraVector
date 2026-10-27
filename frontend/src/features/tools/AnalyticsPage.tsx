@@ -14,8 +14,8 @@ ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, PointElemen
 
 interface Analytics {
   total_documents: number; documents_in_period: number; documents_by_status: { stage_status: number; count: number }[];
-  total_users: number; active_users_in_period: number; total_projects: number; active_projects: number;
-  total_collaborations: number; total_reviews: number; completed_reviews: number; pending_reviews: number;
+  total_users: number; active_users_in_period: number;
+  total_reviews: number; completed_reviews: number; pending_reviews: number;
   total_journals: number; monthly_uploads: { month: string; count: number }[];
   user_type_distribution: { user_type: string; count: number }[];
   top_uploaders: { id: number; full_name: string; email: string; upload_count: number }[];
@@ -61,11 +61,9 @@ export default function AnalyticsPage() {
         </div>
       } subtitle={`${d.period_label} (${formatDate(d.start_date)} - ${formatDate(d.end_date)})`} />
 
-      <div className="grid-3">
+      <div className="grid-4">
         <Stat value={d.total_documents} label="Total Documents" note={`+${d.documents_in_period} in period`} />
         <Stat value={d.total_users} label="Total Users" note={`${d.active_users_in_period} active in period`} />
-        <Stat value={d.total_projects} label="Total Projects" note={`${d.active_projects} active`} />
-        <Stat value={d.total_collaborations} label="Collaborations" />
         <Stat value={d.total_reviews} label="Total Reviews" note={`${d.completed_reviews} completed`} />
         <Stat value={d.total_journals} label="Journals" />
       </div>

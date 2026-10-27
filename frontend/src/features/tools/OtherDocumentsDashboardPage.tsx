@@ -1,14 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BarChart3, BookOpen, CalendarDays, FileOutput, FolderKanban, LineChart, Plus, Search, Settings, Users } from 'lucide-react';
+import { BarChart3, BookOpen, CalendarDays, FileOutput, LineChart, Search, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { api } from '@/lib/api';
 import { ErrorNotice, Loading, PageHeader, Panel } from '@/components/ui';
 import './tools.css';
 
 interface Dashboard {
-  active_projects: number;
-  total_collaborators: number;
   saved_journals_count: number;
 }
 
@@ -37,11 +35,8 @@ export default function OtherDocumentsDashboardPage() {
   return (
     <div className="stack-lg">
       <PageHeader eyebrow="Other Document Types Dashboard" title="Welcome to Other Document Types"
-        subtitle="Manage your specialized documents, projects, and analytics" />
-      <div className="grid-2">
-        <Card icon={<FolderKanban size={16} />} title="Projects" text="Manage your research projects and collaborate with team members."
-          stats={[[d.active_projects, 'Active Projects'], [d.total_collaborators, 'Collaborators']]}
-          action={<Link className="btn btn-primary" to="/journal-selector/projects/create/"><Plus size={14} /> New Project</Link>} />
+        subtitle="Find journals and conferences for your research, and track your activity" />
+      <div className="grid-3">
         <Card icon={<BookOpen size={16} />} title="Journal Selector" text="Find and select appropriate journals for your research publications."
           stats={[[d.saved_journals_count, 'Saved Journals'], [0, 'Submissions']]}
           action={<Link className="btn btn-primary" to="/journal-selector/journals/"><Search size={14} /> Find Journals</Link>} />
@@ -54,7 +49,6 @@ export default function OtherDocumentsDashboardPage() {
       </div>
       <Panel title="Quick Actions">
         <div className="tools-actions-grid">
-          <Link to="/journal-selector/projects/"><FolderKanban size={20} /><span>View Projects</span></Link>
           <Link to="/journal-selector/journals/"><Search size={20} /><span>Search Journals</span></Link>
           <Link to="/journal-selector/export-data/"><FileOutput size={20} /><span>Export Data</span></Link>
         </div>

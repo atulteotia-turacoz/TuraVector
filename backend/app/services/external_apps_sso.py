@@ -1,6 +1,6 @@
 """Single sign-on from TuraVector into the other Tura applications.
 
-Research Assistant / TuraGrammar ("ticket" apps): TuraVector signs a short-lived JWT
+Research Assistant / TuraGrammar / TuraStatistics / TuraSLR ("ticket" apps): TuraVector signs a short-lived JWT
 (HS256, per-app shared secret) and opens `<APP_SSO_URL>#ticket=<jwt>`. The ticket sits in
 the URL fragment, so it never reaches server logs or Referer headers. The app's /sso page
 posts it to its own `POST /api/auth/sso`, which verifies it, finds or creates the user by
@@ -30,6 +30,8 @@ class SSOError(Exception):
 
 
 def sso_configured(app: ExternalApp) -> bool:
+    if not app.url_setting:  # applications added in the admin open their plain link
+        return False
     if app.key == "ext_lms":
         return bool(settings.TURA_LMS_WS_TOKEN and settings.TURA_LMS_BASE_URL)
     url_setting, secret_setting = _ticket_settings(app)

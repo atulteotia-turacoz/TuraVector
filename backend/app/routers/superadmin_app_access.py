@@ -4,7 +4,7 @@ Visibility is set **per user only** (roles are not used for cards):
 - Visible → UserPermission(user, card permission, is_granted=1)
 - Hidden  → UserPermission(..., is_granted=0) — an explicit deny, so a role that happens to hold the
             same permission can't reopen the dashboard through the normal permission check.
-Superusers always see every card; managers always see Content Lab.
+Superusers always see every card; managers always see Content Review.
 Every change is written to django_admin_log like other admin changes.
 """
 import math
@@ -21,16 +21,17 @@ from app.core.utils import full_name
 from app.database import get_db
 from app.models import Permission, User, UserPermission
 from app.services import superadmin_core as core
-from app.services.external_apps import APPS, CARD_BY_KEY, CARDS, Card, card_permission, card_visible
+from app.services.external_apps import Card, app_of, card_by_key, card_permission, card_visible, cards, ensure_tools
 
 router = APIRouter(prefix="/api/superadmin/app-access", tags=["superadmin"])
 PAGE_SIZE = 25
 
 
-def _card(key: str) -> Card:
-    if key not in CARD_BY_KEY:
+def _card(db: Session, key: str) -> Card:
+    card = card_by_key(db, key)
+    if card is None:
         raise HTTPException(404, "Unknown card")
-    return CARD_BY_KEY[key]
+    return card
 
 
 def _cell(user: User, card: Card, checker: PermissionChecker, setting: bool | None) -> dict:
@@ -44,9 +45,9 @@ def _cell(user: User, card: Card, checker: PermissionChecker, setting: bool | No
     return {"visible": card_visible(checker, user, card), "source": source, "locked": source in ("superuser", "manager")}
 
 
-def _cards_meta() -> list[dict]:
-    urls = {a.key: a.url for a in APPS}
-    return [{"key": c.key, "name": c.name, "kind": c.kind, "url": urls.get(c.key)} for c in CARDS]
+def _cards_meta(db: Session) -> list[dict]:
+    urls = {t.key: app_of(t).url for t in ensure_tools(db) if t.kind == "app"}
+    return [{"key": c.key, "name": c.name, "kind": c.kind, "url": urls.get(c.key)} for c in cards(db)]
 
 
 def _settings(db: Session, perms: dict[str, Permission], user_ids: list[int]) -> dict[tuple[int, str], bool]:
@@ -58,7 +59,8 @@ def _settings(db: Session, perms: dict[str, Permission], user_ids: list[int]) ->
 
 @router.get("")
 def app_access(search: str = "", page: int = 1, db: Session = Depends(get_db), admin: User = Depends(require_superuser)):
-    perms = {c.key: card_permission(db, c) for c in CARDS}
+    all_cards = cards(db)
+    perms = {c.key: card_permission(db, c) for c in all_cards}
     stmt = select(User).where(User.is_active == 1)
     if search.strip():
         like = f"%{search.strip()}%"
@@ -75,8 +77,8 @@ def app_access(search: str = "", page: int = 1, db: Session = Depends(get_db), a
         checker = PermissionChecker(db, u)
         items.append({"id": u.id, "name": full_name(u), "username": u.username, "email": u.email,
                       "is_superuser": bool(u.is_superuser),
-                      "cards": {c.key: _cell(u, c, checker, settings_.get((u.id, c.key))) for c in CARDS}})
-    return {"cards": _cards_meta(), "users": {"items": items, "total": total, "page": page, "pages": pages}}
+                      "cards": {c.key: _cell(u, c, checker, settings_.get((u.id, c.key))) for c in all_cards}})
+    return {"cards": _cards_meta(db), "users": {"items": items, "total": total, "page": page, "pages": pages}}
 
 
 @router.get("/users/{user_id}")
@@ -84,12 +86,13 @@ def user_cards(user_id: int, db: Session = Depends(get_db), admin: User = Depend
     target = db.get(User, user_id)
     if not target:
         raise HTTPException(404, "User not found")
-    perms = {c.key: card_permission(db, c) for c in CARDS}
+    by_key = {c.key: c for c in cards(db)}
+    perms = {k: card_permission(db, c) for k, c in by_key.items()}
     settings_ = _settings(db, perms, [target.id])
     checker = PermissionChecker(db, target)
     return {"user": {"id": target.id, "name": full_name(target), "is_superuser": bool(target.is_superuser)},
-            "cards": [{**m, **_cell(target, CARD_BY_KEY[m["key"]], checker, settings_.get((target.id, m["key"])))}
-                      for m in _cards_meta()]}
+            "cards": [{**m, **_cell(target, by_key[m["key"]], checker, settings_.get((target.id, m["key"])))}
+                      for m in _cards_meta(db)]}
 
 
 class UserCardIn(BaseModel):
@@ -120,7 +123,7 @@ def _set(db: Session, admin: User, target: User, card: Card, visible: bool) -> N
 
 @router.post("/user")
 def set_user_card(body: UserCardIn, db: Session = Depends(get_db), admin: User = Depends(require_superuser)):
-    card = _card(body.card)
+    card = _card(db, body.card)
     target = db.get(User, body.user_id)
     if not target:
         raise HTTPException(404, "User not found")
@@ -128,7 +131,7 @@ def set_user_card(body: UserCardIn, db: Session = Depends(get_db), admin: User =
     db.commit()
     cell = _cell(target, card, PermissionChecker(db, target), body.visible)
     note = " (always visible for superusers)" if cell["source"] == "superuser" else \
-        " (managers always see Content Lab)" if cell["source"] == "manager" else ""
+        " (managers always see Content Review)" if cell["source"] == "manager" else ""
     return {"success": True, "visible": cell["visible"],
             "message": f"{card.name}: {'visible' if cell['visible'] else 'hidden'} for {full_name(target)}{note}"}
 
@@ -142,7 +145,7 @@ class BulkIn(BaseModel):
 @router.post("/bulk")
 def set_card_for_everyone(body: BulkIn, db: Session = Depends(get_db), admin: User = Depends(require_superuser)):
     """Set one card Visible / Hidden for every active user at once."""
-    card = _card(body.card)
+    card = _card(db, body.card)
     users = db.execute(select(User).where(User.is_active == 1)).scalars().all()
     for u in users:
         _set(db, admin, u, card, body.visible)

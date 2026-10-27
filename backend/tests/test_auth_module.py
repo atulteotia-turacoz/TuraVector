@@ -202,7 +202,4 @@ def test_feedback(client, db, login_as):
 
 def test_other_documents_profile(client, login_as):
     data = client.get("/api/documents/other-documents/profile", headers=login_as("admin")).json()
-    for k in ("owned_projects_count", "collaborated_projects_count", "total_documents", "total_versions",
-              "pending_milestones", "in_progress_milestones", "completed_milestones"):
-        assert isinstance(data[k], int)
-    assert len(data["recent_projects"]) <= 5
+    assert {k: type(v) for k, v in data.items()} == {"total_documents": int, "total_versions": int}

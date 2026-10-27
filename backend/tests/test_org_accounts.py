@@ -265,3 +265,19 @@ def test_superadmin_user_list_shows_one_workspace_at_a_time(client, db, login_as
     assert client.get("/api/users/manage", headers=h).json()["organisation_filter"] == "all"
     everyone = {u["username"] for u in client.get("/api/users/manage", headers=h, params={"organisation": "all"}).json()["users"]}
     assert {"teacher1", "wsz_admin", "admin"} <= everyone
+
+
+def test_username_check_and_suggestions(client):
+    _signup(client, "asha.rao", user_type="researcher")
+    taken = client.get("/api/auth/username-check", params={"username": "asha.rao", "first_name": "Asha", "last_name": "Rao"}).json()
+    assert taken["available"] is False and "taken" in taken["message"]
+    assert taken["suggestions"] and "asha.rao" not in taken["suggestions"]
+    for s in taken["suggestions"]:
+        assert client.get("/api/auth/username-check", params={"username": s}).json()["available"] is True
+    free = client.get("/api/auth/username-check", params={"username": "brand_new_name_t"}).json()
+    assert free["available"] is True and free["suggestions"] == []
+    bad = client.get("/api/auth/username-check", params={"username": "no spaces!"}).json()
+    assert bad["available"] is False and "letters" in bad["message"]
+    # name only: suggestions before anything is typed
+    assert client.get("/api/auth/username-check", params={"first_name": "Ravi", "last_name": "Kumar"}).json()["suggestions"]
+    assert _signup(client, "ab", user_type="researcher").json()["error"].startswith("Username:")

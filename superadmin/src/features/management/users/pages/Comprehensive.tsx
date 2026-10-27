@@ -29,7 +29,7 @@ export function PermissionDashboard() {
           <Stat value={stats.total_roles} label="Active Roles" />
           <Stat value={stats.total_users} label="System Users" />
           <Stat value={stats.total_role_assignments} label="Role Assignments" />
-          <Stat value={stats.content_lab_permissions} label="Content Lab Permissions" />
+          <Stat value={stats.content_lab_permissions} label="Content Review Permissions" />
           <Stat value={stats.other_documents_permissions} label="Other Documents Permissions" />
         </div>
       </Panel>
@@ -409,7 +409,7 @@ export function DashboardAccess() {
       render: (r) => <div><strong>{`${r.user.first_name} ${r.user.last_name}`.trim()}</strong><div className="tiny muted">{r.user.email}</div><div className="tiny muted">{r.user.user_type_display}</div></div> },
     { key: 'roles', header: 'Assigned Roles', value: (r) => r.roles.map((x) => x.name).join(' '),
       render: (r) => <div className="row-tight wrap">{r.roles.length ? r.roles.map((x) => <Badge key={x.id} tone="accent">{x.name}</Badge>) : <span className="muted small">No roles assigned</span>}</div> },
-    { key: 'cl', header: 'Content Lab Access', value: (r) => (r.can_access_content_lab ? 1 : 0),
+    { key: 'cl', header: 'Content Review Access', value: (r) => (r.can_access_content_lab ? 1 : 0),
       render: (r) => (r.can_access_content_lab ? <Badge tone="ok">Has Access</Badge> : <Badge tone="danger">No Access</Badge>) },
     { key: 'od', header: 'Other Documents Access', value: (r) => (r.can_access_other_docs ? 1 : 0),
       render: (r) => (r.can_access_other_docs ? <Badge tone="ok">Has Access</Badge> : <Badge tone="danger">No Access</Badge>) },
@@ -431,7 +431,7 @@ export function DashboardAccess() {
         <p className="muted small panel-body" style={{ paddingBottom: 0 }}>Manage which roles have access to each dashboard. Users will inherit permissions from their assigned roles.</p>
         <div className="table-scroll">
           <table className="tbl">
-            <thead><tr><th>Role Name</th><th>Users Count</th><th>Content Lab Access</th><th>Other Documents Access</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Role Name</th><th>Users Count</th><th>Content Review Access</th><th>Other Documents Access</th><th>Actions</th></tr></thead>
             <tbody>
               {d.role_dashboard_access.length === 0 && <tr><td colSpan={5}><Empty title="No roles found" /></td></tr>}
               {d.role_dashboard_access.map((r) => (

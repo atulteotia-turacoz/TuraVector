@@ -11,6 +11,7 @@ import { Crumbs } from '@/components/Shell';
 import { OrgRateCard } from '@/components/OrgRateCard';
 import { OrgBilling } from '@/components/OrgBilling';
 import { OrgLogo, STATUS_TONE, type OrgRow } from './Organisations';
+import { LABEL as SUB_LABEL, TONE as SUB_TONE, type Resp as SubResp } from './Subscriptions';
 
 interface Member {
   user_id: number; username: string; email: string; name: string; user_type_display: string;
@@ -56,6 +57,9 @@ export default function OrganisationDetail() {
   if (q.error) return <ErrorNotice error={q.error} />;
   const { organisation: org, members, contacts } = q.data!;
   const hasContacts = org.kind === 'university' || org.kind === 'organisation';
+  // an individual workspace has no join code, so nobody can ask to join it
+  const isIndividual = org.kind === 'individual';
+  const view: Tab = isIndividual && tab === 'requests' ? 'overview' : tab;
 
   const toggleActive = async (m: Member) => {
     const deactivate = m.is_active;
@@ -98,10 +102,10 @@ export default function OrganisationDetail() {
         </div>} />
 
       <div className="org-tabs">
-        <Tabs<Tab> value={tab} onChange={setTab} tabs={[
+        <Tabs<Tab> value={view} onChange={setTab} tabs={[
           { value: 'overview', label: 'Overview' },
           { value: 'members', label: `Members (${active.length})` },
-          { value: 'requests', label: <>Join requests{pending.length > 0 && <span className="org-count">{pending.length}</span>}</> },
+          ...(isIndividual ? [] : [{ value: 'requests' as Tab, label: <>Join requests{pending.length > 0 && <span className="org-count">{pending.length}</span>}</> }]),
           ...(hasContacts ? [{ value: 'pocs' as Tab, label: 'PoCs' }] : []),
           ...DATA_LISTS.filter((l) => l.main).map((l) => ({ value: l.value as Tab, label: l.label })),
           { value: 'settings', label: 'Settings' },
@@ -116,7 +120,7 @@ export default function OrganisationDetail() {
 
       {dataList && <ChangeListView key={dataList.value} app={dataList.app} model={dataList.model} workspace={org.id} embedded />}
 
-      {tab === 'overview' && (
+      {view === 'overview' && (
         <div className="stack-lg">
           <div className="stat-grid">
             <Stat value={active.length} label="Members" />
@@ -124,10 +128,12 @@ export default function OrganisationDetail() {
               <Stat value={reviewTotals.assigned} label="Reviews assigned" note={`${reviewTotals.completed} completed`} />
               <Stat value={reviewTotals.pending} label="Reviews pending" note={reviewTotals.overdue ? `${reviewTotals.overdue} past the review date` : 'None overdue'} />
             </> : <>
-              <Stat value={pending.length} label="Join requests" note={pending.length ? 'Waiting for approval' : undefined} />
+              {!isIndividual && <Stat value={pending.length} label="Join requests" note={pending.length ? 'Waiting for approval' : undefined} />}
               <Stat value={documents} label="Documents" />
             </>}
-            <Stat value={admins.length} label="Administrators" note={admins.map((a) => a.name || a.username).join(', ') || 'None yet'} />
+            {isIndividual
+              ? <Stat value={active[0]?.name || active[0]?.username || '—'} label="Owner" note="Manages the workspace and its plans" />
+              : <Stat value={admins.length} label="Administrators" note={admins.map((a) => a.name || a.username).join(', ') || 'None yet'} />}
           </div>
           <div className="grid-2">
             <Panel title="Workspace">
@@ -138,14 +144,15 @@ export default function OrganisationDetail() {
                 <dt>Approved</dt><dd>{org.approved_at ? formatDate(org.approved_at) : '—'}</dd>
               </dl>
             </Panel>
-            <Panel title="Join code">
+            {!isIndividual && <Panel title="Join code">
               {org.join_code ? <>
                 <p className="muted small" style={{ marginTop: 0 }}>Students and researchers enter this code when they sign up; the workspace administrator approves them.</p>
                 <div className="row-tight"><code className="org-code">{org.join_code}</code>
                   <button className="btn btn-ghost btn-sm" onClick={() => post('/join-code/regenerate')}><RefreshCw size={13} /> New code</button></div>
-              </> : <p className="muted small">Individual workspaces have no join code.</p>}
-            </Panel>
+              </> : <p className="muted small">No join code yet — it is created when the workspace is saved.</p>}
+            </Panel>}
           </div>
+          {!isTeam && <OrgPlans orgId={org.id} orgName={org.name} waiting={org.status === 'pending'} />}
           {hasContacts && <OrgRateCard orgId={org.id} orgName={org.name} />}
           {hasContacts && <OrgBilling orgId={org.id} orgName={org.name} />}
         </div>
@@ -159,7 +166,7 @@ export default function OrganisationDetail() {
         </Panel>
       )}
 
-      {tab === 'requests' && (
+      {view === 'requests' && (
         pending.length === 0
           ? <Panel><p className="muted" style={{ margin: 0 }}>No pending join requests. People who sign up with the join code appear here until the workspace administrator (or you) approves them.</p></Panel>
           : (
@@ -207,6 +214,40 @@ export default function OrganisationDetail() {
         </div>
       )}
     </>
+  );
+}
+
+/** The workspace's plans (bought, given or on trial); managed on the Subscriptions page. */
+function OrgPlans({ orgId, orgName, waiting }: { orgId: number; orgName: string; waiting: boolean }) {
+  const q = useQuery({
+    queryKey: ['admin', 'subscriptions', 'org', orgId],
+    queryFn: async () => (await api.get<SubResp>('/api/superadmin/subscriptions', { params: { organisation_id: orgId } })).data,
+  });
+  const rows = (q.data?.items ?? []).filter((s) => s.state !== 'cancelled');
+  return (
+    <Panel title="Plans" flush actions={<Link className="btn btn-ghost btn-sm" to={`/subscriptions/?q=${encodeURIComponent(orgName)}`}>Manage</Link>}>
+      {q.isLoading ? <div className="panel-body"><Loading /></div> : rows.length === 0 ? (
+        <div className="panel-body"><p className="muted small" style={{ margin: 0 }}>No plan yet — only free tools and tools given per user.</p></div>
+      ) : (
+        <div className="table-wrap">
+          <table className="tbl">
+            <thead><tr><th>Plan</th><th>Tools</th><th>Period</th><th>Status</th></tr></thead>
+            <tbody>
+              {rows.map((s) => (
+                <tr key={s.id}>
+                  <td><strong>{s.plan_name}</strong></td>
+                  <td className="small">{s.tools.map((t) => t.name).join(', ')}</td>
+                  <td className="small nowrap">{s.starts_at ? formatDate(s.starts_at) : '—'} → {s.ends_at ? formatDate(s.ends_at) : 'no end'}</td>
+                  <td>{waiting && s.state === 'pending' ? <Badge tone="accent">Chosen at sign-up</Badge>
+                    : <Badge tone={SUB_TONE[s.state]}>{s.is_trial && s.state === 'active' ? 'Free trial' : SUB_LABEL[s.state]}</Badge>}
+                    {waiting && s.state === 'pending' && <span className="tiny faint" style={{ display: 'block' }}>Starts when you approve</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Panel>
   );
 }
 
@@ -422,7 +463,7 @@ function MembersTable({ org, rows: all, post, toggleActive }: {
                   : <strong>{m.name || m.username}</strong>}
                 <span className="tiny faint" style={{ display: 'block' }}>{m.username} · {m.email}</span></td>
               {!isTeam && <td>{m.user_type_display}</td>}
-              <td><span className="row-tight wrap">{m.role === 'admin' ? <Badge tone="accent">Admin</Badge> : 'Member'}
+              <td><span className="row-tight wrap">{org.kind === 'individual' ? <Badge tone="accent">Owner</Badge> : m.role === 'admin' ? <Badge tone="accent">Admin</Badge> : 'Member'}
                 {m.is_poc && <Badge tone="ok">PoC</Badge>}</span></td>
               <td>{m.is_active ? <Badge tone="ok">Active</Badge> : <Badge tone="danger">Inactive</Badge>}</td>
               {isTeam ? <>

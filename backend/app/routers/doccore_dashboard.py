@@ -1,4 +1,4 @@
-"""Content Lab dashboard, reviewer dashboard, all reviews and reviewer assignments overview.
+"""Content Review dashboard, reviewer dashboard, all reviews and reviewer assignments overview.
 
 Ports of documents.views: content_lab_dashboard_view + home_view, reviewer_dashboard_view,
 all_reviews_view, reviewer_assignments_overview.
@@ -53,7 +53,7 @@ def _doc_row(d: Document) -> dict:
 def dashboard(page: str | None = None, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """content_lab_dashboard_view -> home_view (also serves home/, list/, user-home/, teacher-home/, manager-dashboard/)."""
     if not can(db, user, "can_access_content_lab_dashboard"):
-        raise page_redirect("You do not have permission to access the Content Lab Management dashboard.",
+        raise page_redirect("You do not have permission to access the Content Review dashboard.",
                             "/home")
 
     can_dashboard = can(db, user, "can_access_dashboard")

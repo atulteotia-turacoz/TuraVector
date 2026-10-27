@@ -77,3 +77,18 @@ def login_as(db):
         user = db.query(User).filter(User.username == username).one()
         return {"Authorization": f"Bearer {create_access_token(user.id)}"}
     return _login
+
+
+# Accounts some older tests sign in as. Real users can be deleted, so a stand-in is created
+# (inside the rolled-back transaction) when the account is missing.
+STAND_INS = {"atul_kumar": "student", "reviewer2": "reviewer"}
+
+
+@pytest.fixture()
+def stand_ins(db):
+    for username, user_type in STAND_INS.items():
+        if db.query(User).filter(User.username == username).first() is None:
+            db.add(User(password="!", is_superuser=0, username=username, is_staff=0, is_active=1, first_name="Stand",
+                        last_name="In", email=f"{username}@example.com", user_type=user_type, is_manager=0,
+                        timezone="UTC"))
+    db.commit()

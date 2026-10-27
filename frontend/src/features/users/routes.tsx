@@ -20,7 +20,7 @@ const MOVED = [
 ];
 
 export const routes: AppRoute[] = [
-  // the manager dashboard is the Content Lab "Dashboard" for managers (see doccore/routes.tsx); old URL forwards
+  // the manager dashboard is the Content Review "Dashboard" for managers (see doccore/routes.tsx); old URL forwards
   { path: '/content-lab-management/manager-dashboard/', element: <Navigate to="/content-lab-management/dashboard/" replace />, layout: 'main' },
   { path: '/content-lab-management/reports/', element: <Reports />, layout: 'main' },
   ...MOVED.map((path): AppRoute => ({ path, element: <MovedToSuperadmin />, layout: 'bare' })),

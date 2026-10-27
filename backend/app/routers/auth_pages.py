@@ -4,7 +4,7 @@ support (+ support request), feedback, and the Other Documents profile page.
 """
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from sqlalchemy import func, or_, select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
@@ -12,11 +12,11 @@ from app.core.email import send_email_with_logging
 from app.core.utils import iso
 from app.database import get_db
 from app.core.permissions import PermissionChecker
-from app.services.external_apps import APP_BY_KEY, CARD_BY_KEY, card_visible, visible_apps
+from app.services import subscriptions
+from app.services.external_apps import Card, app_of, card_visible, tool_by_key, visible_apps
 from app.services.external_apps_sso import SSOError, launch_url, sso_configured
 from app.models import (
-    Document, DocumentFeedback, DocumentNotification, DocumentSupport, DocumentVersion, ProjectMilestone,
-    ResearchProject, ResearchProjectCollaborator, User,
+    Document, DocumentFeedback, DocumentNotification, DocumentSupport, DocumentVersion, User,
 )
 from app.schemas.auth_schemas import FeedbackIn, SupportIn
 from app.services.auth_account import aware_str
@@ -45,24 +45,35 @@ def _err(message: str, status: int) -> JSONResponse:
 # ------------------------------------------------------------------ dashboard selection
 @router.get("/dashboard-selection")
 def dashboard_selection(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    """dashboard_selection_view. `redirect` tells the client where Django would have redirected."""
-    # Cards are set per user (never by role) — see app/services/external_apps.py
+    """dashboard_selection_view. `redirect` tells the client where Django would have redirected.
+    Also lists the tools the user doesn't have yet (with the plans that include them) and the
+    workspace's subscriptions, so the page can offer upgrades."""
+    # Cards are set per user, by plan or free — see app/services/external_apps.py
     checker = PermissionChecker(db, user)
-    can_access_content_lab = card_visible(checker, user, CARD_BY_KEY["content_lab"])
-    can_access_other_documents = card_visible(checker, user, CARD_BY_KEY["other_documents"])
+    content_lab, other_documents = tool_by_key(db, "content_lab"), tool_by_key(db, "other_documents")
+    can_access_content_lab = bool(content_lab and content_lab.is_active) and card_visible(
+        checker, user, Card("content_lab", "", "dashboard", "content_lab", "cl_dashboard_access"))
+    can_access_other_documents = bool(other_documents and other_documents.is_active) and card_visible(
+        checker, user, Card("other_documents", "", "dashboard", "other_documents", "od_dashboard_access"))
 
     apps = visible_apps(db, user)
     for a in apps:
-        a["sso"] = sso_configured(APP_BY_KEY[a["key"]])
+        a["sso"] = sso_configured(app_of(tool_by_key(db, a["key"])))
+    store = subscriptions.store_summary(db, user, {"content_lab": can_access_content_lab,
+                                                   "other_documents": can_access_other_documents,
+                                                   **{a["key"]: True for a in apps}})
+    dashboards = {t.key: subscriptions.tool_payload(t) for t in (content_lab, other_documents) if t is not None}
     result = {
         "can_access_content_lab": can_access_content_lab,
         "can_access_other_documents": can_access_other_documents,
+        "dashboards": dashboards,
         "apps": apps,
+        **store,
         "redirect": None,
         "error": None,
     }
-    # With application cards available the page always shows, so those cards stay reachable.
-    if apps:
+    # With application cards, tools to unlock or a payment to finish the page always shows.
+    if apps or store["locked_tools"] or store["pending"]:
         return result
     if not can_access_content_lab and not can_access_other_documents:
         result["redirect"] = "/profile/"
@@ -76,13 +87,13 @@ def dashboard_selection(user: User = Depends(get_current_user), db: Session = De
 
 @router.post("/external-apps/{key}/launch")
 def launch_external_app(key: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    """URL that opens another Tura application already signed in (single sign-on).
+    """URL that opens another application already signed in (single sign-on when it's set up).
     Only for users who can see that app's card on the dashboard-selection page."""
-    app = APP_BY_KEY.get(key)
-    if app is None or key not in {a["key"] for a in visible_apps(db, user)}:
+    tool = tool_by_key(db, key)
+    if tool is None or key not in {a["key"] for a in visible_apps(db, user)}:
         return _err("You do not have access to this application.", 403)
     try:
-        return {"url": launch_url(app, user)}
+        return {"url": launch_url(app_of(tool), user)}
     except SSOError as exc:
         return _err(str(exc), 502)
 
@@ -196,37 +207,10 @@ def other_documents_profile(user: User = Depends(get_current_user), db: Session 
     def count(stmt) -> int:
         return db.execute(select(func.count()).select_from(stmt.subquery())).scalar_one()
 
-    owned = select(ResearchProject.id).where(ResearchProject.owner_id == user.id)
-    collaborated = (
-        select(ResearchProject.id)
-        .join(ResearchProjectCollaborator, ResearchProjectCollaborator.project_id == ResearchProject.id)
-        .where(ResearchProjectCollaborator.user_id == user.id).distinct()
-    )
     documents = select(Document.id).where(Document.user_id == user.id)
     versions = select(DocumentVersion.id).join(Document, DocumentVersion.document_id == Document.id).where(Document.user_id == user.id)
 
-    collab_project_ids = select(ResearchProjectCollaborator.project_id).where(ResearchProjectCollaborator.user_id == user.id)
-    milestones_base = (
-        select(ProjectMilestone.id)
-        .join(ResearchProject, ProjectMilestone.project_id == ResearchProject.id)
-        .where(or_(ResearchProject.owner_id == user.id, ResearchProject.id.in_(collab_project_ids)))
-    )
-
-    def milestones(status: str) -> int:
-        return count(milestones_base.where(ProjectMilestone.status == status).distinct())
-
-    recent = db.execute(
-        select(ResearchProject).where(ResearchProject.owner_id == user.id)
-        .order_by(ResearchProject.created_at.desc()).limit(5)
-    ).scalars().all()
-
     return {
-        "owned_projects_count": count(owned),
-        "collaborated_projects_count": count(collaborated),
         "total_documents": count(documents),
         "total_versions": count(versions),
-        "pending_milestones": milestones("not_started"),
-        "in_progress_milestones": milestones("in_progress"),
-        "completed_milestones": milestones("completed"),
-        "recent_projects": [{"id": p.id, "title": p.title, "created_at": iso(p.created_at)} for p in recent],
     }

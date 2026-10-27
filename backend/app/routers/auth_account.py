@@ -18,13 +18,13 @@ from app.core.deps import get_current_user, get_optional_user
 from app.core.email import send_email_with_logging
 from app.core.security import check_password, make_password, token_for
 from app.database import get_db
-from app.models import ContactQuery, OTPVerification, User, utcnow
+from app.models import ContactQuery, OTPVerification, SubscriptionPlan, User, utcnow
 from app.routers.auth_core import CONSENT_TEXT, create_login_log, record_user_consent, serialize_me
 from app.schemas.auth_schemas import (
     ChangePasswordIn, ContactIn, EmailIn, SignupIn, TimezoneIn, UpdateProfileIn, VerifyOtpIn,
 )
 from app.services import auth_account as svc
-from app.services import org_accounts
+from app.services import org_accounts, subscriptions
 from app.services.org_common import add_membership, assign_default_role
 
 log = logging.getLogger("turadome.auth")
@@ -61,11 +61,27 @@ def _validate_account(db: Session, body: SignupIn) -> JSONResponse | None:
         return _err("Password must be at least 8 characters long.", 400)
     if (body.user_type or "student") not in dict(org_accounts.SIGNUP_USER_TYPES):
         return _err("Invalid account type.", 400)
-    if db.execute(select(User.id).where(User.username == body.username).limit(1)).first():
+    body.username = body.username.strip()
+    problem = svc.username_problem(body.username)
+    if problem:
+        return _err(f"Username: {problem}", 400)
+    if svc.username_taken(db, body.username):
         return _err("Username already exists.", 400)
     if db.execute(select(User.id).where(User.email == body.email).limit(1)).first():
         return _err("Email already registered.", 400)
     return None
+
+
+@router.get("/username-check")
+def username_check(username: str = "", first_name: str = "", last_name: str = "", db: Session = Depends(get_db)):
+    """Live check on the sign-up form: is the username usable, and free usernames to pick from."""
+    username = username.strip()[:150]
+    problem = svc.username_problem(username) if username else None
+    taken = bool(username) and problem is None and svc.username_taken(db, username)
+    available = bool(username) and problem is None and not taken
+    message = problem or ("This username is already taken." if taken else "Available." if available else "")
+    suggestions = [] if available else svc.username_suggestions(db, username, first_name, last_name)
+    return {"username": username, "available": available, "message": message, "suggestions": suggestions}
 
 
 def _create_account(db: Session, body: SignupIn, request: Request) -> User:
@@ -90,16 +106,27 @@ def signup(body: SignupIn, request: Request, db: Session = Depends(get_db)):
         org = org_accounts.find_joinable(db, body.join_code) if joining else None
     except org_accounts.SignupError as e:
         return _err(str(e), 400)
+    plan = None
+    if body.plan_id and not joining:
+        plan = db.get(SubscriptionPlan, body.plan_id)
+        if plan is None or not plan.is_active or plan.audience not in ("individual", "all"):
+            return _err("The selected plan is not available. Please choose another plan.", 400)
 
+    sub = None
     try:
         user = _create_account(db, body, request)
         if joining:
             add_membership(db, org, user, role="member", status="pending")
         else:
-            org_accounts.create_individual_workspace(db, user)
+            workspace = org_accounts.create_individual_workspace(db, user)
+            if plan is not None:
+                sub = subscriptions.subscribe(db, workspace, plan, user, source="signup")
             create_login_log(db, request, user=user, username_attempted=user.username, status="success")
             user.last_login = utcnow()
         db.commit()
+    except subscriptions.SubscriptionError as e:
+        db.rollback()
+        return _err(str(e), 400)
     except Exception as e:  # noqa: BLE001
         db.rollback()
         return _err(f"Error creating account: {e}", 400)
@@ -113,6 +140,9 @@ def signup(body: SignupIn, request: Request, db: Session = Depends(get_db)):
         "access_token": token_for(user),
         "token_type": "bearer",
         "user": serialize_me(db, user),
+        # a paid plan chosen at sign-up waits for payment on the Plans page
+        "subscription": subscriptions.subscription_payload(sub, subscriptions.tool_names(db)) if sub else None,
+        "payment_required": bool(sub and sub.status == "pending"),
     }
 
 
@@ -126,6 +156,7 @@ def signup_organisation(
     username: str = Form(""), email: str = Form(""), first_name: str = Form(""), last_name: str = Form(""),
     password: str = Form(""), confirm_password: str = Form(""), phone: str = Form(""), address: str = Form(""),
     privacy_consent: bool = Form(False),
+    plan_id: int | None = Form(None),
     db: Session = Depends(get_db),
 ):
     """Register a university/organisation workspace; the person signing up becomes its admin.
@@ -145,19 +176,28 @@ def signup_organisation(
         org_accounts.validate_logo(logo)
     except org_accounts.SignupError as e:
         return _err(str(e), 400)
+    plan = db.get(SubscriptionPlan, plan_id) if plan_id else None
+    if plan_id and (plan is None or not plan.is_active or plan.audience not in ("organisation", "all")):
+        return _err("The selected plan is not available. Please choose another plan.", 400)
 
     try:
         user = _create_account(db, body, request)
         org = org_accounts.create_pending_organisation(db, user, name=organisation_name, kind=organisation_kind,
                                                        website=website.strip(), logo=logo)
+        if plan is not None:  # starts when the workspace is approved
+            subscriptions.request_plan(db, org, plan, user)
         db.commit()
+    except subscriptions.SubscriptionError as e:
+        db.rollback()
+        return _err(str(e), 400)
     except Exception as e:  # noqa: BLE001
         db.rollback()
         return _err(f"Error creating account: {e}", 400)
 
     org_accounts.notify_new_organisation(db, org, user)
+    chosen = f" Your {plan.name} plan starts once it is approved." if plan is not None else ""
     return {"message": f"{org.name} has been registered. We will email you once it is approved — you can sign in "
-                       "after that.", "pending": True}
+                       f"after that.{chosen}", "pending": True}
 
 
 # ------------------------------------------------------------------ password reset

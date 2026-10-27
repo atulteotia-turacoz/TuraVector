@@ -73,3 +73,22 @@ def test_moodle_login_url(client, login_as, monkeypatch):
     monkeypatch.setattr(external_apps_sso.httpx, "post", lambda url, data, timeout: Resp({"exception": "x", "message": "Invalid token"}))
     r = _launch(client, login_as("admin"), "ext_lms")
     assert r.status_code == 502 and "Invalid token" in r.json()["error"]
+
+
+def test_turastatistics_ticket(client, login_as, monkeypatch):
+    monkeypatch.setattr(settings, "TURASTATISTICS_SSO_URL", "https://statistics.example/sso")
+    monkeypatch.setattr(settings, "TURASTATISTICS_SSO_SECRET", SECRET)
+    r = _launch(client, login_as("admin"), "ext_turastatistics")
+    assert r.status_code == 200
+    url = r.json()["url"]
+    assert url.startswith("https://statistics.example/sso#ticket=")
+    claims = jwt.decode(url.split("#ticket=", 1)[1], SECRET, algorithms=["HS256"], audience="ext_turastatistics", issuer="turavector")
+    assert claims["email"] and claims["jti"]
+
+
+def test_turaslr_ticket(client, login_as, monkeypatch):
+    monkeypatch.setattr(settings, "TURASLR_SSO_URL", "https://slr.example/sso")
+    monkeypatch.setattr(settings, "TURASLR_SSO_SECRET", SECRET)
+    url = _launch(client, login_as("admin"), "ext_turaslr").json()["url"]
+    assert url.startswith("https://slr.example/sso#ticket=")
+    jwt.decode(url.split("#ticket=", 1)[1], SECRET, algorithms=["HS256"], audience="ext_turaslr", issuer="turavector")

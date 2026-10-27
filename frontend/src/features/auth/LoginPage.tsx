@@ -1,7 +1,7 @@
 /** Port of templates/authentication/login.html (+ forgot-password OTP modal). */
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { KeyRound, LogIn, ShieldCheck, Users } from 'lucide-react';
+import { KeyRound, LogIn, ShieldCheck, UserPlus } from 'lucide-react';
 import { api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { ThemePicker } from '@/components/ThemePicker';
@@ -131,7 +131,7 @@ export default function LoginPage() {
         </form>
         <div className="au-card-foot">
           <div><button type="button" className="au-linkbtn" onClick={() => setForgotOpen(true)}><KeyRound size={13} style={{ verticalAlign: '-2px' }} /> Forgot Password?</button></div>
-          <div className="row-tight" style={{ justifyContent: 'center' }}><Users size={13} /> Need an account? Contact your administrator.</div>
+          <div><Link to="/signup/" className="row-tight" style={{ justifyContent: 'center' }}><UserPlus size={13} /> New to TuraVector? Create an account</Link></div>
           <div className="row-tight" style={{ justifyContent: 'center' }}><ShieldCheck size={13} /> Secure • Reliable • Efficient</div>
           <div className="row wrap" style={{ justifyContent: 'center' }}>
             <span className="faint">© 2024 TuraVector. All rights reserved.</span>

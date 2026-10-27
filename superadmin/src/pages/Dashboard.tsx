@@ -46,7 +46,7 @@ export function ActionFlag({ e }: { e: LogEntry }) {
 interface Overview {
   users: { total: number; active: number; superusers: number; staff: number; new_30d: number };
   documents: { total: number; versions: number; new_30d: number; by_stage: { stage: number; label: string; count: number }[] };
-  library: { references: number; zips: number; projects: number };
+  library: { references: number; zips: number };
   emails: { by_status: Record<string, number>; total: number; last_30d: number };
   logins: {
     series: { date: string; success: number; failed: number }[];
@@ -144,7 +144,6 @@ export default function Dashboard() {
         <Stat value={d.users.total} label="Users" note={`${d.users.active} active · ${d.users.new_30d} new in 30 days`} />
         <Stat value={d.documents.total} label="Documents" note={`${d.documents.versions} versions · ${d.documents.new_30d} new in 30 days`} />
         <Stat value={d.library.references} label="References" note={`${d.library.zips} ZIP bundles`} />
-        <Stat value={d.library.projects} label="Research projects" />
         <Stat value={d.logins.success_14d} label="Logins (14 days)" note={`${d.logins.failed_14d} failed or blocked`} />
         <Stat value={d.emails.total} label="Emails sent" note={`${failed} failed · ${d.emails.last_30d} in 30 days`} />
       </div>

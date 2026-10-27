@@ -22,6 +22,8 @@ class SignupIn(BaseModel):
     # "individual" (personal workspace) or "join" (ask to join a university/organisation by code)
     account_type: str | None = None
     join_code: str | None = None
+    # individual sign-up: the plan chosen on the sign-up page (None = start with the free tools only)
+    plan_id: int | None = None
 
 
 class EmailIn(BaseModel):

@@ -1,6 +1,6 @@
 /**
  * Which dashboard-selection cards one user sees. Set per user (Visible / Hidden) — roles don't decide cards.
- * Superusers always see every card; managers always see Content Lab.
+ * Superusers always see every card; managers always see Content Review.
  */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -14,7 +14,7 @@ interface Card extends CardCell { key: string; name: string; kind: 'dashboard' |
 
 export const LOCK_TEXT: Record<string, string> = {
   superuser: 'Always visible for superusers',
-  manager: 'Managers always see Content Lab',
+  manager: 'Managers always see Content Review',
 };
 
 /** On/off switch used for card visibility. */

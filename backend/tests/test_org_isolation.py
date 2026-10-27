@@ -8,7 +8,7 @@ from sqlalchemy import select
 from app.core.security import create_access_token
 from app.models import (
     Country, Document, DocumentType, DocumentVersion, Organisation, OrgMembership, ReferenceDocument,
-    ResearchProject, User,
+    User,
 )
 
 
@@ -108,7 +108,7 @@ def test_lists_dashboards_and_reports_are_isolated(client, world):
     h = _h(world["b_admin"])
     for url in ("/api/library/documents", "/api/users/manager-dashboard", "/api/users/manager-dashboard/insights",
                 "/api/users/reports", "/api/tools/analytics", "/api/users/manage", "/api/library/quick-stats",
-                "/api/doccore/reviewer-assignments", "/api/projects/all-collaborators"):
+                "/api/doccore/reviewer-assignments"):
         r = client.get(url, headers=h)
         assert r.status_code == 200, (url, r.text)
         body = _texts(r)
@@ -130,15 +130,6 @@ def test_references_are_isolated(client, world):
     assert client.get(f"/api/library/references/{ref.id}", headers=_h(world["b_admin"])).status_code == 200
     assert client.get(f"/api/library/references/{ref.id}", headers=_h(world["a_admin"])).status_code in (403, 404)
     assert "Other Ref" not in _texts(client.get("/api/library/references", headers=_h(world["a_admin"])))
-
-
-def test_projects_are_isolated(client, db, world):
-    p = ResearchProject(title="Other Project", description="", owner_id=world["b_member"].id, status="planning",
-                        priority="medium", research_field="", keywords="", is_active=1, client_type="internal",
-                        has_authors=0, project_type="research", therapeutic_area="")
-    db.add(p)
-    db.commit()
-    assert client.get(f"/api/projects/{p.id}", headers=_h(world["a_admin"])).status_code in (403, 404)
 
 
 def test_superuser_sees_every_workspace(client, world, login_as):

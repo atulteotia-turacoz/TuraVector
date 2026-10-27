@@ -554,10 +554,13 @@ def _f(v) -> float:
     return float(v or 0)
 
 
+CYCLE_LABELS = {**BILLING_CYCLES, "subscription": "Plan subscription"}  # plan payments are invoiced when paid
+
+
 def invoice_row(inv: Invoice) -> dict:
     return {"id": inv.id, "number": inv.number, "organisation_id": inv.organisation_id,
             "organisation": inv.organisation.name if inv.organisation else "", "cycle": inv.cycle,
-            "cycle_label": BILLING_CYCLES.get(inv.cycle, inv.cycle), "status": inv.status,
+            "cycle_label": CYCLE_LABELS.get(inv.cycle, inv.cycle), "status": inv.status,
             "status_label": INVOICE_STATUSES[inv.status], "total": _f(inv.total), "currency": inv.currency,
             "period_start": iso(inv.period_start), "period_end": iso(inv.period_end),
             "created_at": iso(inv.created_at), "paid_at": iso(inv.paid_at)}

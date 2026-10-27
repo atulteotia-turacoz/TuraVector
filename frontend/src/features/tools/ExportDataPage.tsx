@@ -7,10 +7,9 @@ import { ErrorNotice, Loading, PageHeader, Panel, Spinner, Stat, useToast } from
 import './tools.css';
 
 const TYPES: [string, string, string][] = [
-  ['all', 'All Data', 'Export all your documents, journals, and projects'],
+  ['all', 'All Data', 'Export all your documents and saved journals'],
   ['documents', 'Documents Only', 'Export only your document records'],
   ['journals', 'Saved Journals Only', 'Export only your saved journal selections'],
-  ['projects', 'Projects Only', 'Export only your research projects'],
 ];
 const FORMATS: [string, string, string][] = [
   ['json', 'JSON', 'Machine-readable format, ideal for data processing'],
@@ -34,7 +33,7 @@ export default function ExportDataPage() {
   const [busy, setBusy] = useState(false);
   const q = useQuery({
     queryKey: ['tools', 'export-summary'],
-    queryFn: async () => (await api.get<{ documents_count: number; journals_count: number; projects_count: number }>('/api/tools/export-data')).data,
+    queryFn: async () => (await api.get<{ documents_count: number; journals_count: number }>('/api/tools/export-data')).data,
   });
 
   const submit = async (e: FormEvent) => {
@@ -63,7 +62,6 @@ export default function ExportDataPage() {
         <div className="grid-3">
           <Stat value={d.documents_count} label="Documents" />
           <Stat value={d.journals_count} label="Saved Journals" />
-          <Stat value={d.projects_count} label="Projects" />
         </div>
       </Panel>
       <Panel title="Export Options">

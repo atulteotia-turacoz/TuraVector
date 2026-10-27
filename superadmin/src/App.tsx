@@ -21,6 +21,9 @@ const AppAccess = lazy(() => import('@/pages/AppAccess'));
 const Organisations = lazy(() => import('@/pages/Organisations'));
 const PaymentGateways = lazy(() => import('@/pages/PaymentGateways'));
 const RateCards = lazy(() => import('@/pages/RateCards'));
+const Tools = lazy(() => import('@/pages/Tools'));
+const Plans = lazy(() => import('@/pages/Plans'));
+const Subscriptions = lazy(() => import('@/pages/Subscriptions'));
 const BillingSettings = lazy(() => import('@/pages/BillingSettings'));
 const InvoicesList = lazy(() => import('@/pages/Invoices').then((m) => ({ default: m.InvoicesList })));
 const InvoiceDetail = lazy(() => import('@/pages/Invoices').then((m) => ({ default: m.InvoiceDetail })));
@@ -53,6 +56,9 @@ export default function App() {
         <Route path="/organisations/" element={<Protected><Organisations /></Protected>} />
         <Route path="/payment-gateways/" element={<Protected><PaymentGateways /></Protected>} />
         <Route path="/rate-cards/" element={<Protected><RateCards /></Protected>} />
+        <Route path="/tools/" element={<Protected><Tools /></Protected>} />
+        <Route path="/plans/" element={<Protected><Plans /></Protected>} />
+        <Route path="/subscriptions/" element={<Protected><Subscriptions /></Protected>} />
         <Route path="/billing-settings/" element={<Protected><BillingSettings /></Protected>} />
         <Route path="/invoices/" element={<Protected><InvoicesList /></Protected>} />
         <Route path="/invoices/:id/" element={<Protected><InvoiceDetail /></Protected>} />
