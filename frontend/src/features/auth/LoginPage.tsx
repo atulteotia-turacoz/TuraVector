@@ -96,7 +96,7 @@ export default function LoginPage() {
       detectAndSetTimezone();
       navigate(safeNext(params.get('next')) || '/home', { replace: true });
     } catch (err) {
-      setError(errorMessage(err, 'Invalid username or password'));
+      setError(errorMessage(err, 'Invalid username/email or password'));
       setBusy(false);
     }
   };
@@ -112,7 +112,7 @@ export default function LoginPage() {
         <form className="au-card-body" onSubmit={submit} id="loginForm">
           {error && <div className="notice notice-danger" style={{ marginBottom: 14 }}>{error}</div>}
           <div className="stack">
-            <Field label="Username"><input className="input" name="username" required autoFocus value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" placeholder="Username" /></Field>
+            <Field label="Username or email"><input className="input" name="username" required autoFocus value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" placeholder="Username or email address" /></Field>
             <Field label="Password"><input className="input" name="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" placeholder="Password" /></Field>
           </div>
           <div className="au-consent">

@@ -46,7 +46,7 @@ export default function Login() {
           <div className="panel-body">
             {error && <div className="notice notice-danger" role="alert" style={{ marginBottom: 14 }}>{error}</div>}
             <label className="field">
-              <span className="field-label">Username</span>
+              <span className="field-label">Username or email</span>
               <input className="input" autoFocus autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} required />
             </label>
             <label className="field">

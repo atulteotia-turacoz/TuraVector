@@ -9,7 +9,7 @@ from threading import Lock
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -134,6 +134,17 @@ class LoginIn(BaseModel):
     privacy_consent: bool = False
 
 
+def _user_for_login(db: Session, login_id: str, password: str) -> User | None:
+    """The account for a username or an email address. The username wins when both match;
+    if several accounts share an email, the one whose password matches."""
+    user = db.execute(select(User).where(User.username == login_id)).scalar_one_or_none()
+    if user is not None or "@" not in login_id:
+        return user
+    same_email = db.execute(select(User).where(func.lower(User.email) == login_id.lower())
+                            .order_by(User.is_active.desc(), User.id)).scalars().all()
+    return next((u for u in same_email if check_password(password, u.password)), same_email[0] if same_email else None)
+
+
 @router.post("/login")
 def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
     username = body.username.strip()
@@ -142,7 +153,7 @@ def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
     if len(username) > 150 or len(password) > 128:
         raise HTTPException(400, "Invalid input length.")
     if not re.match(r"^[a-zA-Z0-9@._+-]+$", username):
-        raise HTTPException(400, "Invalid username format.")
+        raise HTTPException(400, "Enter a valid username or email address.")
 
     ip = get_client_ip(request)
     attempts = _get_attempts(ip)
@@ -154,12 +165,11 @@ def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
     if not body.privacy_consent:
         raise HTTPException(400, "You must consent to the processing of your personal data in accordance with the Privacy Policy.")
 
-    # ModelBackend: lookup by username, check password, reject inactive users
-    user = db.execute(select(User).where(User.username == username)).scalar_one_or_none()
+    user = _user_for_login(db, username, password)
     if user is None or not check_password(password, user.password) or not user.is_active:
         _bump_attempts(ip, attempts)
         create_login_log(db, request, username_attempted=username, status="failed", failure_reason="Invalid credentials")
-        raise HTTPException(401, "Invalid username or password")
+        raise HTTPException(401, "Invalid username/email or password")
 
     _clear_attempts(ip)
     blocked = membership_blocked(db, user)

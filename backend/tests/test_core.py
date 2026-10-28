@@ -34,3 +34,20 @@ def test_password_change_invalidates_old_tokens(client, db):
     db.commit()  # savepoint only — rolled back after the test
     assert client.get("/api/auth/me", headers=h).status_code == 401
     assert client.get("/api/auth/me", headers={"Authorization": f"Bearer {token_for(user)}"}).status_code == 200
+
+
+def test_login_with_username_or_email(client, db):
+    from app.core.security import make_password
+    from app.models import User
+    user = db.query(User).filter(User.username == "teacher1").one()
+    user.email = "Teacher.One@Example.com"
+    user.password = make_password("both-ways-123", iterations=1000)
+    db.commit()
+
+    def login(login_id, password="both-ways-123"):
+        return client.post("/api/auth/login", json={"username": login_id, "password": password, "privacy_consent": True})
+
+    assert login("teacher1").json()["user"]["username"] == "teacher1"
+    assert login("teacher.one@example.com").json()["user"]["username"] == "teacher1"  # any case
+    assert login("teacher.one@example.com", "wrong").status_code == 401
+    assert login("nobody@example.com").status_code == 401
